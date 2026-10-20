@@ -1,0 +1,823 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Trampilla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700;800&display=swap">
+<style>
+/* Layout: estudio de TV de una sola pantalla. Arriba las 4 trampillas (el "piso"), abajo la consola de juego del jugador. Look único, oscuro de estudio. */
+:root{
+  --bg:#110e29; --bg2:#1b1742; --panel:#221d50; --line:#3a3478;
+  --ink:#f6f2ff; --mute:#aaa3da; --gold:#ffbf3c; --hot:#ff4a6b; --ice:#7ee6ff; --ok:#4fe3a1;
+  --s1:#ffbf3c; --s2:#7ee6ff; --s3:#ff7ad9; --s4:#b69bff;
+  --display:"Bungee","Arial Black",Impact,sans-serif;
+  --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4;
+  background-image:radial-gradient(120% 60% at 50% -10%,#3b2a7a 0%,transparent 60%),radial-gradient(80% 40% at 50% 110%,#2a1650 0%,transparent 70%);
+  background-attachment:fixed;overflow-x:hidden}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--ice);outline-offset:2px}
+#app{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:10px 28px;display:flex;flex-direction:column;gap:14px}
+
+.top{display:flex;align-items:center;gap:10px}
+.logo{font-family:var(--display);font-size:26px;letter-spacing:.02em;color:var(--gold);text-shadow:0 0 18px rgba(255,191,60,.45),0 2px 0 #7a4a00;line-height:1}
+.logo small{display:block;font-family:var(--body);font-weight:500;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);text-shadow:none;margin-top:4px}
+.top .sp{flex:1}
+.chip{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:99px;background:var(--bg2);border:1px solid var(--line);color:var(--mute);white-space:nowrap}
+.iconbtn{background:var(--bg2);border:1px solid var(--line);border-radius:99px;padding:6px 10px;font-size:12px;font-weight:700;color:var(--mute)}
+
+/* El piso con las trampillas */
+.stage{position:relative;padding:14px 6px 10px;border-radius:18px;background:linear-gradient(180deg,#1d1846,#151135);border:1px solid var(--line);overflow:hidden}
+.stage::before{content:"";position:absolute;inset:auto -20% -40% -20%;height:90%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 44px),repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 30px);transform:perspective(300px) rotateX(55deg);transform-origin:bottom;pointer-events:none}
+.doors{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.door{--c:var(--s1);display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;padding:4px 0;min-width:0}
+.door.s2{--c:var(--s2)}.door.s3{--c:var(--s3)}.door.s4{--c:var(--s4)}
+.hole{position:relative;width:68px;height:68px;max-width:100%;border-radius:50%;background:#05030f;box-shadow:0 0 0 3px var(--c),0 0 22px color-mix(in srgb,var(--c) 55%,transparent),inset 0 6px 14px #000;overflow:hidden;perspective:200px}
+.flap{position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--c) 30%,#2a2560) 0 6px,color-mix(in srgb,var(--c) 18%,#221d50) 6px 12px);transition:transform .5s cubic-bezier(.6,0,.4,1)}
+.flap.l{left:0;transform-origin:left center}.flap.r{right:0;transform-origin:right center}
+.avatar{position:absolute;inset:10px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#16123a;font-family:var(--display);font-size:24px;z-index:2;transition:transform .7s cubic-bezier(.5,0,.9,.4),opacity .7s}
+.door.empty .avatar{background:transparent;color:var(--mute);font-family:var(--body);font-size:26px;font-weight:400;border:2px dashed var(--line)}
+.door.out .flap.l{transform:rotateY(-100deg)}.door.out .flap.r{transform:rotateY(100deg)}
+.door.out .avatar{transform:translateY(80px) scale(.4);opacity:0}
+.door.falling .hole{animation:shake .5s 2}
+.door.me .hole{box-shadow:0 0 0 3px var(--c),0 0 0 6px var(--bg),0 0 0 8px var(--c),0 0 26px color-mix(in srgb,var(--c) 70%,transparent),inset 0 6px 14px #000}
+.nm{font-weight:700;font-size:13px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 2px}
+.door.empty .nm{color:var(--mute);font-weight:500;font-size:12px}
+.huellas{display:flex;gap:3px;min-height:12px}
+.huella{width:9px;height:12px;border-radius:50% 50% 45% 45%;background:var(--ink)}
+.huella.lost{background:transparent;border:1.5px solid var(--line)}
+.pozo{font-size:12px;font-weight:700;color:var(--gold);font-variant-numeric:tabular-nums}
+.st{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);min-height:14px}
+.st.ok{color:var(--ok)}
+
+/* Consola */
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 16px;display:flex;flex-direction:column;gap:14px;min-width:0}
+.gametag{font-family:var(--display);font-size:13px;letter-spacing:.06em;color:var(--c,var(--ice));text-transform:uppercase}
+.help{color:var(--mute);font-size:14px;margin-top:-8px}
+h2{font-family:var(--display);font-weight:400;font-size:24px;line-height:1.1;margin:0;text-wrap:balance}
+.question{font-size:20px;font-weight:700;line-height:1.3;margin:0;text-wrap:balance}
+.timer{height:10px;border-radius:99px;background:var(--bg);overflow:hidden;border:1px solid var(--line)}
+.timer i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold),var(--ok));transform-origin:left;transition:background .3s}
+.timer.low i{background:var(--hot)}
+.slots{display:flex;flex-wrap:wrap;gap:5px;justify-content:center}
+.word{display:flex;gap:4px}
+.slot{width:30px;height:38px;border-radius:7px;background:var(--bg);border:2px solid var(--line);display:grid;place-items:center;font-family:var(--display);font-size:19px;color:var(--ice)}
+.slot.shown{border-color:var(--ice);animation:pop .3s}
+.slot.win{border-color:var(--ok);color:var(--ok)}
+.slots.dense .slot{width:24px;height:32px;font-size:15px}
+.tiles{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.tile{width:44px;height:48px;border-radius:10px;border:0;background:var(--gold);color:#2a1a00;font-family:var(--display);font-size:22px;box-shadow:0 4px 0 #a86f00}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 #a86f00}
+.tile:disabled{opacity:.18;box-shadow:none}
+.clues{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.clues li{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font-weight:500;animation:pop .35s}
+.clues li b{color:var(--ice);font-family:var(--display);font-weight:400;margin-right:8px}
+.clues li.wait{color:var(--mute);border-style:dashed;animation:none}
+form.ans{display:flex;gap:8px}
+form.ans input{flex:1;min-width:0;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:18px;font-weight:700;text-transform:uppercase}
+form.ans input:focus{border-color:var(--ice);outline:none}
+.btn{border:0;border-radius:12px;padding:12px 18px;font-weight:800;font-size:16px;background:var(--gold);color:#2a1a00;box-shadow:0 4px 0 #a86f00}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #a86f00}
+.btn:disabled{opacity:.4}
+.btn.ghost{background:var(--bg2);color:var(--ink);box-shadow:0 4px 0 #0b0920;border:1px solid var(--line)}
+.btn.hot{background:var(--hot);color:#fff;box-shadow:0 4px 0 #8a1028}
+.btn.big{font-family:var(--display);font-weight:400;font-size:20px;padding:14px 18px;letter-spacing:.02em}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row > .btn{flex:1}
+.msg{font-weight:700;text-align:center;min-height:22px}
+.msg.ok{color:var(--ok)}.msg.bad{color:var(--hot)}
+.shake{animation:shake .35s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes pop{from{transform:scale(.7);opacity:.2}to{transform:none;opacity:1}}
+
+/* Lobby */
+label.f{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}
+label.f input{background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:18px;font-weight:700;text-transform:none;letter-spacing:0;color:var(--ink)}
+.seg{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{flex:1;border:0;background:none;padding:8px 10px;border-radius:9px;font-weight:700;color:var(--mute)}
+.seg button[aria-pressed="true"]{background:var(--bg2);color:var(--gold);box-shadow:inset 0 0 0 1px var(--line)}
+details{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{font-weight:700;cursor:pointer}
+details ul{margin:10px 0 2px;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--mute);font-size:14px}
+details ul b{color:var(--ink)}
+.note{font-size:13px;color:var(--mute)}
+.banner{border:1px dashed var(--gold);color:var(--gold);border-radius:12px;padding:10px 12px;font-size:14px}
+
+/* Resultados */
+.res{display:flex;flex-direction:column;gap:8px}
+.rline{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.rline .dot{width:12px;height:12px;border-radius:50%;background:var(--c)}
+.rline .who{min-width:0}
+.rline .who b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rline .who span{font-size:13px;color:var(--mute)}
+.rline .tag{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;text-align:right}
+.tag.ok{color:var(--ok)}.tag.bad{color:var(--hot)}
+.rline.fell{border-color:var(--hot);background:color-mix(in srgb,var(--hot) 14%,var(--bg2))}
+.answer{font-family:var(--display);font-size:26px;color:var(--ice);text-align:center;line-height:1.1;overflow-wrap:anywhere}
+.quip{font-style:italic;color:var(--mute);text-align:center}
+.bigmoney{font-family:var(--display);font-size:clamp(34px,11vw,52px);color:var(--gold);text-align:center;text-shadow:0 0 24px rgba(255,191,60,.5);font-variant-numeric:tabular-nums;line-height:1}
+.center{text-align:center}
+.count{font-family:var(--display);font-size:72px;color:var(--gold);text-align:center;line-height:1;animation:pop .5s}
+.fstats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fstat{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.fstat b{display:block;font-family:var(--display);font-weight:400;font-size:28px;font-variant-numeric:tabular-nums}
+.fstat span{font-size:12px;color:var(--mute);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+
+/* Overlay de caída */
+.overlay{position:fixed;inset:0;z-index:50;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#3a0012 0%,#05030f 70%);padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px))}
+.overlay .inner{text-align:center;display:flex;flex-direction:column;gap:14px;align-items:center}
+.overlay h1{font-family:var(--display);font-weight:400;font-size:clamp(44px,15vw,80px);margin:0;color:var(--hot);text-shadow:0 0 30px rgba(255,74,107,.6);animation:drop .9s cubic-bezier(.3,1.5,.6,1)}
+@keyframes drop{from{transform:translateY(-120px) scale(1.4);opacity:0}}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:700;padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;text-align:center}
+.takeover{font-size:13px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (max-width:380px){.hole{width:58px;height:58px}.slot{width:26px;height:34px;font-size:16px}.tile{width:40px;height:44px}}
+.or{text-align:center;color:var(--mute);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.1em}
+.code{font-family:var(--display);font-size:44px;letter-spacing:.12em;color:var(--gold);text-align:center;line-height:1}
+#codeIn{text-transform:uppercase;letter-spacing:.3em;font-family:var(--display);text-align:center}
+.linkbox{display:flex;gap:8px;align-items:center}
+.linkbox code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--mute);user-select:all}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="top">
+    <div class="logo">TRAMPILLA<small>Si le errás, caés</small></div>
+    <div class="sp"></div>
+    <span class="chip" id="roundChip">Lobby</span>
+    <button class="iconbtn" id="soundBtn" aria-pressed="false">Sonido: no</button>
+  </header>
+  <section class="stage" aria-label="Trampillas de los jugadores"><div class="doors" id="doors"></div></section>
+  <div class="banner" id="netBar" hidden></div>
+  <main id="main"></main>
+  <div class="row" id="hostBar" hidden><span class="note takeover" id="takeoverNote">Parece que el juego se trabó.</span><button class="btn ghost" id="takeoverBtn">Tomar el control</button></div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+/* ===================== Preguntas ===================== */
+// [pregunta, respuesta, alternativas]
+const CLASICO=[
+["¿Qué cantante tucumana era conocida como \"La Negra\"?","Mercedes Sosa",["sosa"]],
+["¿Cuál es la capital de Australia?","Canberra"],
+["¿En qué provincia argentina está el cerro Aconcagua?","Mendoza"],
+["¿Cuál es el planeta más grande del sistema solar?","Júpiter"],
+["¿Quién escribió el \"Martín Fierro\"?","José Hernández",["hernandez"]],
+["¿Cuál es la moneda de Japón?","Yen"],
+["¿Cuál es el río más caudaloso de América del Sur?","Amazonas"],
+["¿Qué elemento químico tiene el símbolo O?","Oxígeno"],
+["¿Cómo se llama el humorista gráfico que creó a Mafalda?","Quino"],
+["¿Qué ciudad argentina es conocida como \"La Docta\"?","Córdoba"],
+["¿Cuál es el idioma oficial de Brasil?","Portugués"],
+["¿A qué selección le ganó Argentina la final del Mundial 2022?","Francia"],
+["¿Qué instrumento de fuelle es emblema del tango?","Bandoneón"],
+["¿Qué océano separa América de Europa?","Atlántico"],
+["¿Cuál es el apellido del inventor de la birome?","Biro"],
+["¿Cuál es el hueso más largo del cuerpo humano?","Fémur"],
+["¿Cuál es la capital de Canadá?","Ottawa"],
+["¿Qué país europeo tiene forma de bota?","Italia"],
+["¿Qué glaciar famoso está cerca de El Calafate?","Perito Moreno"],
+["¿Quién escribió \"Rayuela\"?","Julio Cortázar",["cortazar"]],
+["¿Qué gas es el más abundante en el aire que respiramos?","Nitrógeno"],
+["¿Qué pieza roscada se ajusta con una tuerca?","Bulón",["tornillo"]],
+["¿Cuál es el ave nacional argentina?","Hornero"],
+["¿Cuál es la flor nacional argentina?","Ceibo"],
+["¿Cuál era el apellido del primer hombre que pisó la Luna?","Armstrong"],
+["¿Cuál es el continente más grande del mundo?","Asia"],
+["¿Cuántos lados tiene un hexágono?","Seis",["6"]],
+["¿Quién escribió \"Cien años de soledad\"?","García Márquez",["gabriel garcia marquez","garcia marquez"]],
+["¿En qué provincia están las Cataratas del Iguazú?","Misiones"],
+["¿Cómo se llamaba la banda de Gustavo Cerati?","Soda Stereo"],
+["¿Cuál es la infusión nacional argentina?","Mate"],
+["¿Qué metal tiene el símbolo químico Fe?","Hierro"],
+["¿Qué deporte jugaba Manu Ginóbili?","Básquet",["basquetbol","baloncesto","basket"]],
+["¿Qué planeta es conocido como el planeta rojo?","Marte"],
+["¿Cuál es el apellido del autor de \"Don Quijote\"?","Cervantes"],
+["¿Qué mar separa Europa de África?","Mediterráneo"],
+["¿Qué prócer cruzó la cordillera de los Andes con el Ejército?","San Martín",["jose de san martin"]],
+["¿En qué ciudad está la Casa Rosada?","Buenos Aires"],
+["¿Cuál es el océano más grande del planeta?","Pacífico"],
+["¿Cómo se llama el estrecho que separa Tierra del Fuego del continente?","Magallanes"],
+["¿Qué escritor argentino escribió \"El Aleph\"?","Borges",["jorge luis borges"]],
+["¿Qué herramienta se usa para medir si una superficie está horizontal?","Nivel"],
+["¿Cuál es la unidad de medida de la corriente eléctrica?","Ampere",["amper","amperio"]],
+["¿Cómo se llama la selección argentina de rugby?","Los Pumas",["pumas"]],
+["¿Qué ciudad es la capital de la provincia de Neuquén?","Neuquén"],
+];
+// [pista, palabra]
+const REVOLT=[
+["Animal australiano que salta y lleva la cría en una bolsa","CANGURO"],
+["Carne pasada por huevo y pan rallado","MILANESA"],
+["Pieza roscada que se ajusta con destornillador","TORNILLO"],
+["Ave que no vuela y nada en aguas heladas","PINGUINO"],
+["Golosina de dos tapas con dulce de leche","ALFAJOR"],
+["Insecto que antes fue oruga","MARIPOSA"],
+["Postre que se hace con cacao","CHOCOLATE"],
+["Se rellena con carne y se cierra con repulgue","EMPANADA"],
+["Reptil gigante que se extinguió hace millones de años","DINOSAURIO"],
+["Vehículo de dos ruedas y pedales","BICICLETA"],
+["Montaña que puede entrar en erupción","VOLCAN"],
+["Electrodoméstico que mantiene fría la comida","HELADERA"],
+["Persona que viaja al espacio","ASTRONAUTA"],
+["Recipiente para llevar el agua caliente del mate","TERMO"],
+["Hoja con todos los días del año","CALENDARIO"],
+["Se abre cuando llueve","PARAGUAS"],
+["Pez de mar con muchas filas de dientes","TIBURON"],
+["Animal con trompa y colmillos de marfil","ELEFANTE"],
+["Caño de metal para tomar mate","BOMBILLA"],
+["Reparte cartas casa por casa","CARTERO"],
+["Tiene luz roja, amarilla y verde","SEMAFORO"],
+["Flor que gira siguiendo al sol","GIRASOL"],
+["Herramienta para clavar clavos","MARTILLO"],
+["Instrumento de seis cuerdas","GUITARRA"],
+["Comida de domingo con carne a la parrilla","ASADO"],
+["Pieza hexagonal con rosca interna","TUERCA"],
+["Arandela, bulón y tuerca se venden en una...","BULONERA"],
+["Planeta donde vivimos","TIERRA"],
+["Dulce argentino que se hace con leche y azúcar","DULCEDELECHE"],
+["Profesional que arregla caños y canillas","PLOMERO"],
+];
+// [[pistas], respuesta, alternativas]
+const PISTAS=[
+[["Nació en Rosario","Jugó muchos años en el Barcelona","Ganó varios Balones de Oro","Levantó la Copa en Qatar como capitán"],"Messi",["lionel messi"]],
+[["Se comparte en ronda","Lleva bombilla","Alguien tiene que cebar","Se hace con yerba"],"Mate"],
+[["Está sobre la avenida 9 de Julio","Mide unos 67 metros","Se inauguró en 1936","Es un símbolo porteño"],"Obelisco"],
+[["Nació en el Río de la Plata","Gardel lo cantó","Se toca con bandoneón","Se baila abrazado"],"Tango"],
+[["Tiene fases","Provoca las mareas","Es un satélite natural","Armstrong la pisó en 1969"],"Luna"],
+[["Tiene origen napolitano","Lleva muzzarella","Se pide por porciones","Puede ser a la piedra o al molde"],"Pizza"],
+[["Le decían el Morocho del Abasto","Cantó \"Mi Buenos Aires querido\"","Murió en Medellín en 1935","Dicen que cada día canta mejor"],"Gardel",["carlos gardel"]],
+[["Se crió en Villa Fiorito","Fue ídolo en el Napoli","Hizo un gol con la mano en 1986","Usaba la 10 de la selección"],"Maradona",["diego maradona"]],
+[["Es hexagonal","Tiene rosca por dentro","Va con un bulón","Se ajusta con llave"],"Tuerca"],
+[["Es el continente más frío","Argentina tiene la base Marambio ahí","Viven pingüinos emperador","Está casi toda cubierta de hielo"],"Antártida"],
+[["Tiene la Garganta del Diablo","Está en Misiones","Es frontera con Brasil","Son unas cataratas famosas"],"Iguazú"],
+[["Tiene 64 casillas","Hay alfiles y caballos","Se gana con jaque mate","Se juega con blancas y negras"],"Ajedrez"],
+[["Es una estrella","Está en el centro del sistema planetario","Su luz tarda unos 8 minutos en llegarnos","Aparece en la bandera argentina"],"Sol"],
+[["Tiene cabeza y mango","Sirve para clavar","Es una herramienta de golpe","Thor tiene uno"],"Martillo"],
+[["Tiene teclas blancas y negras","Suele tener 88 teclas","Puede ser de cola o vertical","Lo tocaba Chopin"],"Piano"],
+[["Tiene seis cuerdas","Puede ser criolla o eléctrica","Tiene trastes","Se toca con púa o con los dedos"],"Guitarra"],
+[["Es una ciudad","Tiene la Torre Eiffel","Atraviesa el río Sena","Es la capital de Francia"],"París"],
+[["Es un animal","Es el más alto del mundo","Come hojas de acacia","Tiene el cuello larguísimo"],"Jirafa"],
+[["Es un juego de mesa","Se usan 28 fichas","Cada ficha tiene dos números","Se juega mucho en los clubes de barrio"],"Dominó"],
+[["Se usa en la ferretería","Tiene un brazo y una mordaza","Se ajusta a la medida de la tuerca","Se la llama francesa o inglesa"],"Llave",["llave inglesa","llave francesa"]],
+];
+// Final: [pregunta, respuesta, alternativas]
+const FINALQ=[
+["Capital de Francia","París"],["7 × 8","56",["cincuenta y seis"]],["Color que sale de mezclar azul y amarillo","Verde"],
+["Capital de España","Madrid"],["Días de un año bisiesto","366"],["Satélite natural de la Tierra","Luna"],
+["Planeta más cercano al Sol","Mercurio"],["Minutos que tiene una hora","60",["sesenta"]],["País de los canguros","Australia"],
+["Capital de Italia","Roma"],["Único mamífero que vuela","Murciélago"],["Patas de una araña","8",["ocho"]],
+["Autor de \"Romeo y Julieta\"","Shakespeare"],["Capital de Chile","Santiago"],["Mes más corto del año","Febrero"],
+["Raíz cuadrada de 81","9",["nueve"]],["Herramienta para cortar madera a mano","Serrucho",["sierra"]],["Deporte de Las Leonas","Hockey"],
+["Jugadores de básquet en cancha por equipo","5",["cinco"]],["Capital de Brasil","Brasilia"],["Autor de \"El Aleph\"","Borges"],
+["Lados de un triángulo","3",["tres"]],["Rey de la selva","León"],["Idioma que se habla en Alemania","Alemán"],
+["Agua en estado sólido","Hielo"],["Día de julio de la Independencia argentina","9",["nueve"]],["Capital de Perú","Lima"],
+["Moneda de los Estados Unidos","Dólar"],["Continente de Egipto","África"],["12 × 12","144"],
+["Fruta amarilla y curva","Banana"],["Ciudad de la Estatua de la Libertad","Nueva York"],["Animal que da la lana","Oveja"],
+["Opuesto de \"ganar\"","Perder"],["Color de la sangre","Rojo"],["Instrumento para ver estrellas","Telescopio"],
+["Capital de Uruguay","Montevideo"],["Cantidad de meses del año","12",["doce"]],["Pieza que va con el bulón","Tuerca"],
+["Primer mes del año","Enero"],["Ave que habla y repite palabras","Loro"],["100 dividido 4","25",["veinticinco"]],
+];
+
+/* ===================== Utilidades ===================== */
+const T=25000, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=18, TRIES=2;
+const SEATS=['s1','s2','s3','s4'];
+const TYPES=['clasico','revoltillo','pistas'];
+const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una'};
+const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.'};
+const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa'];
+const QUIPS_FALL=['¡Se abrió el piso!','Mandale un saludo a la familia… desde abajo.','Nadie se salva.','Ahora caíste vos.','Chau, nos vemos en la próxima.'];
+const QUIPS_OK=['Qué nivel, eh.','Esto es cultura general.','Venían bien, pero el piso está atento.','Respiren, que sigue.'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
+const matches=(input,ans,alts)=>{const n=norm(input);return !!n&&[ans,...(alts||[])].some(a=>norm(a)===n)};
+const money=n=>'$'+Math.round(n||0).toLocaleString('es-AR');
+const clone=o=>JSON.parse(JSON.stringify(o));
+function rng(seed){let h=1779033703;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),3432918353),h=h<<13|h>>>19;return()=>{h=Math.imul(h^h>>>16,2246822507);h=Math.imul(h^h>>>13,3266489909);h^=h>>>16;return(h>>>0)/4294967296}}
+function shuffle(a,r=Math.random){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+const range=n=>Array.from({length:n},(_,i)=>i);
+const pick=(arr,seed)=>arr[Math.floor(rng(seed)()*arr.length)];
+function lsGet(k){try{return localStorage.getItem(k)}catch{return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch{}}
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2600)}
+function getQ(type,id){
+  if(type==='clasico'){const q=CLASICO[id];return{text:q[0],answer:q[1],alts:q[2]}}
+  if(type==='revoltillo'){const q=REVOLT[id];return{text:q[0],answer:q[1],alts:[]}}
+  if(type==='pistas'){const q=PISTAS[id];return{clues:q[0],answer:q[1],alts:q[2]}}
+  const q=FINALQ[id];return{text:q[0],answer:q[1],alts:q[2]};
+}
+
+/* ===================== Sonido ===================== */
+let actx=null,soundOn=false;
+function sfx(kind){if(!soundOn||!actx)return;const t=actx.currentTime;const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);
+  const P={tick:[880,.05,'square',.04],ok:[660,.25,'triangle',.18],bad:[140,.4,'sawtooth',.12],fall:[500,1.1,'sawtooth',.15],start:[440,.4,'triangle',.15],win:[880,.9,'triangle',.18]}[kind];
+  o.type=P[2];o.frequency.setValueAtTime(P[0],t);if(kind==='fall')o.frequency.exponentialRampToValueAtTime(60,t+P[1]);if(kind==='ok'||kind==='win')o.frequency.setValueAtTime(P[0]*1.5,t+P[1]/2);
+  g.gain.setValueAtTime(P[3],t);g.gain.exponentialRampToValueAtTime(.0001,t+P[1]);o.start(t);o.stop(t+P[1]+.05)}
+$('#soundBtn').onclick=()=>{soundOn=!soundOn;if(soundOn&&!actx){try{actx=new (window.AudioContext||window.webkitAudioContext)()}catch{}}$('#soundBtn').textContent=soundOn?'Sonido: sí':'Sonido: no';$('#soundBtn').setAttribute('aria-pressed',soundOn);sfx('ok')};
+let wakeLock=null;async function keepAwake(){try{if(!wakeLock&&navigator.wakeLock)wakeLock=await navigator.wakeLock.request('screen');wakeLock?.addEventListener?.('release',()=>wakeLock=null)}catch{}}
+
+/* ===================== Almacén (compartido o local) ===================== */
+function makeLocalStore(){
+  const data=new Map(),docL=new Map(),colL=new Map();
+  const colOf=p=>p.split('/').slice(0,-1).join('/');
+  const snap=p=>{const d=data.get(p);return{id:p.split('/').pop(),exists:!!d,data:()=>d&&clone(d),metadata:{}}};
+  const colSnap=c=>{const docs=[...data.keys()].filter(k=>colOf(k)===c).sort().map(snap);return{docs,size:docs.length,empty:!docs.length}};
+  const anyL=[];
+  const emit=p=>{(docL.get(p)||[]).forEach(f=>f(snap(p)));const c=colOf(p);(colL.get(c)||[]).forEach(f=>f(colSnap(c)));anyL.forEach(f=>f())};
+  const add=(m,k,f)=>{const a=m.get(k)||[];a.push(f);m.set(k,a);return()=>m.set(k,(m.get(k)||[]).filter(x=>x!==f))};
+  return{local:true,onChange:f=>anyL.push(f),dump:()=>Object.fromEntries(data),peek:p=>data.get(p),
+    doc:p=>({get:async()=>snap(p),set:async d=>{data.set(p,clone(d));setTimeout(()=>emit(p))},acquire:async()=>({acquired:true}),
+      onSnapshot(f){const u=add(docL,p,f);setTimeout(()=>f(snap(p)));return u}}),
+    collection:c=>({onSnapshot(f){const u=add(colL,c,f);setTimeout(()=>f(colSnap(c)));return u}})};
+}
+function makeMirrorStore(send){
+  let data={};const docL=new Map(),colL=new Map();
+  const colOf=p=>p.split('/').slice(0,-1).join('/');
+  const snap=p=>({id:p.split('/').pop(),exists:!!data[p],data:()=>data[p]&&clone(data[p]),metadata:{}});
+  const colSnap=c=>{const docs=Object.keys(data).filter(k=>colOf(k)===c).sort().map(snap);return{docs,size:docs.length,empty:!docs.length}};
+  const add=(m,k,f)=>{const a=m.get(k)||[];a.push(f);m.set(k,a);return()=>m.set(k,(m.get(k)||[]).filter(x=>x!==f))};
+  function apply(nd){const old=data;data=nd||{};const cols=new Set();
+    new Set([...Object.keys(old),...Object.keys(data)]).forEach(p=>{if(JSON.stringify(old[p])!==JSON.stringify(data[p])){(docL.get(p)||[]).forEach(f=>f(snap(p)));cols.add(colOf(p))}});
+    cols.forEach(c=>(colL.get(c)||[]).forEach(f=>f(colSnap(c))))}
+  return{mirror:true,apply,
+    doc:p=>({get:async()=>snap(p),set:async d=>{apply({...data,[p]:clone(d)});send({t:'set',path:p,data:clone(d)})},acquire:async()=>({acquired:true}),
+      onSnapshot(f){const u=add(docL,p,f);setTimeout(()=>f(snap(p)));return u}}),
+    collection:c=>({onSnapshot(f){const u=add(colL,c,f);setTimeout(()=>f(colSnap(c)));return u}})};
+}
+let store=null,uid=null,readOnly=false;
+let netRole=null,roomCode=null,peer=null,conn=null,entered=false;const conns=new Set();
+let state=null,seats={},answers={};
+let lastChange=Date.now();
+
+/* ===================== Identidad ===================== */
+const mySeat=()=>SEATS.find(s=>seats[s]?.uid&&seats[s].uid===uid)||null;
+const myPlaySeat=()=>{if(!state||!state.players)return null;return SEATS.find(s=>state.players[s]&&state.players[s].uid===uid)||null};
+const isHost=()=>!!state&&state.hostUid===uid;
+const roundKey=st=>st.gameId+':'+st.roundN;
+const phaseKey=st=>!st?'none':st.phase+':'+(st.phase==='round'||st.phase==='reveal'?roundKey(st):st.phase==='final'?st.final.key:(st.gameId||''));
+
+/* ===================== Escritura de estado (solo anfitrión) ===================== */
+let wq=Promise.resolve();
+function writeState(st){state=st;lastChange=Date.now();seenAt[phaseKey(st)]??=performance.now();onState();
+  wq=wq.then(()=>store.doc('game/state').set(st)).catch(e=>{toast('No se pudo guardar la jugada. Revisá la conexión.');console.warn(e)})}
+function writeAnswer(seat,obj){return store.doc('answers/'+seat).set(obj).catch(e=>{toast('No se pudo enviar tu respuesta.');console.warn(e)})}
+
+/* ===================== Lógica del anfitrión ===================== */
+const seenAt={},doneKeys=new Set(),botsDone=new Set();
+const once=(k,fn)=>{if(doneKeys.has(k))return;doneKeys.add(k);fn()};
+
+function startGame(lives){
+  const players={};
+  SEATS.forEach(s=>{const x=seats[s];if(x&&x.uid)players[s]={uid:x.uid,name:x.name,bot:!!x.bot,lives,pozo:0,alive:true}});
+  if(Object.keys(players).length<2)return toast('Hacen falta al menos 2 jugadores sentados.');
+  const gameId=Math.random().toString(36).slice(2,8);const r=rng(gameId);
+  const deck={clasico:shuffle(range(CLASICO.length),r),revoltillo:shuffle(range(REVOLT.length),r),pistas:shuffle(range(PISTAS.length),r),final:shuffle(range(FINALQ.length),r).slice(0,10)};
+  writeState({phase:'intro',hostUid:uid,gameId,lives,players,deck,roundN:0,fallOrder:[],result:null,final:null,champion:null});
+}
+function nextRound(){
+  const st=clone(state);st.roundN++;
+  const type=TYPES[(st.roundN-1)%3];const n=Math.floor((st.roundN-1)/3);
+  st.type=type;st.qid=st.deck[type][n%st.deck[type].length];st.phase='round';st.result=null;
+  writeState(st);
+}
+function aliveSeats(st=state){return SEATS.filter(s=>st.players[s]?.alive)}
+function allAnswered(){const k=roundKey(state);return aliveSeats().every(s=>answers[s]?.key===k)}
+function resolveRound(){
+  const st=clone(state),P=st.players,key=roundKey(st),alive=aliveSeats(st);
+  const res={};alive.forEach(s=>{const a=answers[s];res[s]=(a&&a.key===key)?{ok:!!a.ok,ms:a.ms}:{ok:false,ms:null,none:true}});
+  const oks=alive.filter(s=>res[s].ok).sort((a,b)=>res[a].ms-res[b].ms);
+  const fails=alive.filter(s=>!res[s].ok);
+  let lose=[...fails],note='';
+  if(!fails.length&&oks.length>1){lose=[oks[oks.length-1]];note='slow'}
+  const gains={};
+  oks.forEach((s,i)=>{const g=Math.round((10000+20000*Math.max(0,1-res[s].ms/T)+(i===0?5000:0))/100)*100;gains[s]=g;P[s].pozo+=g});
+  if(alive.every(s=>lose.includes(s)&&P[s].lives<=1)){lose=[];note='saved'}
+  const fell=[];
+  lose.forEach(s=>{P[s].lives--;if(P[s].lives<=0){P[s].alive=false;fell.push(s)}});
+  st.fallOrder=[...st.fallOrder,...fell];
+  st.phase='reveal';st.result={key,res,oks,lose,fell,gains,note};
+  writeState(st);
+}
+function advance(){
+  const alive=aliveSeats();
+  if(alive.length<=1)return startFinal(alive[0]);
+  if(state.roundN>=MAX_ROUNDS){
+    const st=clone(state);const best=alive.slice().sort((a,b)=>st.players[b].pozo-st.players[a].pozo)[0];
+    const rest=alive.filter(s=>s!==best).sort((a,b)=>st.players[a].pozo-st.players[b].pozo);
+    rest.forEach(s=>st.players[s].alive=false);st.fallOrder=[...st.fallOrder,...rest];state=st;
+    return startFinal(best,true);
+  }
+  nextRound();
+}
+function startFinal(seat,byPozo){
+  const st=clone(state);st.phase='final';
+  st.final={seat,key:st.gameId+':F',qids:st.deck.final,byPozo:!!byPozo,botCorrect:st.players[seat].bot?4+Math.floor(Math.random()*6):null};
+  writeState(st);
+}
+function endGame(correct){
+  const st=clone(state),f=st.final,base=st.players[f.seat].pozo;
+  const finalPozo=Math.round(base*(0.5+0.15*correct)/100)*100;
+  st.phase='end';st.champion={seat:f.seat,correct,base,finalPozo};
+  writeState(st);
+}
+function scheduleBots(){
+  const k=roundKey(state);if(botsDone.has(k))return;botsDone.add(k);
+  aliveSeats().forEach(s=>{if(!state.players[s].bot)return;const d=3500+Math.random()*16000,ok=Math.random()<.72;
+    setTimeout(()=>{if(state&&roundKey(state)===k&&state.phase==='round')writeAnswer(s,{key:k,ok,ms:Math.round(d)})},d)});
+}
+setInterval(()=>{
+  if(!state||!isHost()||readOnly)return;
+  const pk=phaseKey(state);seenAt[pk]??=performance.now();const el=performance.now()-seenAt[pk];
+  switch(state.phase){
+    case 'intro': if(el>INTRO_MS)once(pk,nextRound);break;
+    case 'round': scheduleBots();if(allAnswered()||el>T+3000)once(pk,resolveRound);break;
+    case 'reveal': if(el>REVEAL_MS)once(pk,advance);break;
+    case 'final':{const f=state.final,a=answers[f.seat];
+      if(state.players[f.seat].bot){if(el>15000)once(pk,()=>endGame(f.botCorrect))}
+      else if(a&&a.key===f.key&&a.done)once(pk,()=>endGame(a.correct));
+      else if(el>FINAL_MS+8000)once(pk,()=>endGame(a&&a.key===f.key?a.correct:0));break}
+  }
+},400);
+
+/* ===================== Escenario ===================== */
+let prevAlive={};
+function renderStage(){
+  const inGame=state&&state.phase!=='lobby'&&state.players;
+  const me=inGame?myPlaySeat():mySeat();
+  const k=state&&state.phase==='round'?roundKey(state):null;
+  $('#doors').innerHTML=SEATS.map(s=>{
+    const p=inGame?state.players[s]:seats[s]?.uid?seats[s]:null;
+    if(!p)return `<button class="door ${s} empty" data-seat="${s}" ${inGame?'disabled':''} aria-label="Lugar libre"><div class="hole"><div class="flap l"></div><div class="flap r"></div><div class="avatar">+</div></div><div class="nm">${inGame?'Vacío':'Sentate acá'}</div><div class="huellas"></div><div class="st"></div></button>`;
+    const out=inGame&&!p.alive;
+    const lives=inGame?state.lives:0,left=inGame?p.lives:0;
+    const h=inGame?range(lives).map(i=>`<i class="huella ${i<left?'':'lost'}"></i>`).join(''):'';
+    let st='',stc='';
+    if(!inGame)st=p.bot?'Bot':(s===me?'Vos':'Listo');
+    else if(out)st='Cayó';
+    else if(k&&answers[s]?.key===k){st='Respondió';stc='ok'}
+    else if(state.phase==='final'&&state.final.seat===s)st='En la final';
+    return `<button class="door ${s} ${s===me?'me':''} ${out?'out':''}" data-seat="${s}" ${inGame?'disabled':''} aria-label="${esc(p.name)}"><div class="hole"><div class="flap l"></div><div class="flap r"></div><div class="avatar">${esc((p.name||'?').trim().charAt(0).toUpperCase())}</div></div><div class="nm">${esc(p.name)}</div><div class="huellas">${h}</div>${inGame?`<div class="pozo">${money(p.pozo)}</div>`:''}<div class="st ${stc}">${st}</div></button>`;
+  }).join('');
+  // animación de caída
+  if(inGame){SEATS.forEach(s=>{const p=state.players[s];if(!p)return;
+    if(prevAlive[s]===true&&!p.alive){const el=document.querySelector(`.door[data-seat="${s}"]`);if(el){el.classList.remove('out');el.classList.add('falling');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('out')));}}
+  });prevAlive=Object.fromEntries(SEATS.map(s=>[s,state.players[s]?.alive]))}else prevAlive={};
+}
+$('#doors').addEventListener('click',e=>{const d=e.target.closest('.door');if(!d||d.disabled)return;onSeatTap(d.dataset.seat)});
+
+/* ===================== Lobby ===================== */
+let lobbyLives=Number(lsGet('tramp_lives'))||3;
+async function onSeatTap(s){
+  if(readOnly)return toast('Solo podés mirar. Pedí acceso de Editor para jugar.');
+  const cur=seats[s];
+  if(cur?.bot){await store.doc('seats/'+s).set({uid:null});return}
+  if(cur?.uid===uid){await store.doc('seats/'+s).set({uid:null});return}
+  if(cur?.uid)return toast('Ese lugar ya está ocupado.');
+  const name=($('#nameIn')?.value||'').trim();
+  if(!name){$('#nameIn')?.focus();return toast('Primero escribí tu nombre.')}
+  lsSet('tramp_name',name);
+  const ref=store.doc('seats/'+s);
+  try{const r=await ref.acquire({holder:uid,ttlMs:4000});if(!r.acquired)return toast('Alguien se está sentando ahí.')}catch{}
+  const now=await ref.get();if(now.exists&&now.data().uid&&now.data().uid!==uid)return toast('Te ganaron ese lugar.');
+  const old=mySeat();
+  await ref.set({uid,name,bot:false});
+  if(old&&old!==s)await store.doc('seats/'+old).set({uid:null});
+  keepAwake();sfx('ok');
+}
+async function addBot(){
+  const s=SEATS.find(x=>!seats[x]?.uid);if(!s)return toast('Ya están las 4 trampillas ocupadas.');
+  await store.doc('seats/'+s).set({uid:'bot-'+s,name:BOT_NAMES[SEATS.indexOf(s)],bot:true});
+}
+function buildLobby(){
+  const name=lsGet('tramp_name')||'';
+  $('#main').innerHTML=`<div class="card">
+    ${netRole==='solo'?`<div class="banner">Modo práctica: jugás en este celu contra bots.</div>`:''}
+    ${netRole==='host'?`<div class="center"><p class="note">Código de la sala</p><div class="code">${roomCode}</div></div>
+      <div class="linkbox"><code id="roomLink">${esc(roomLink())}</code><button class="btn ghost" type="button" id="copyBtn">Copiar link</button></div>
+      <p class="note" id="connCount">Conectados: 1 celular (este).</p>
+      <p class="note">Dejá este celu con la pantalla prendida y la página abierta: es el que arma la sala.</p>`:''}
+    ${netRole==='client'?`<p class="note center">Estás en la sala <b>${roomCode}</b>.</p>`:''}
+    <h2>Elegí tu trampilla</h2>
+    <label class="f" for="nameIn">Tu nombre<input id="nameIn" maxlength="14" autocomplete="nickname" value="${esc(name)}" placeholder="Ej: Damián"></label>
+    <p class="note" id="seatHint">Escribí tu nombre y tocá un círculo libre de arriba.</p>
+    <div class="row"><span class="note" style="flex:1">Huellas (vidas) por jugador</span>
+      <div class="seg" role="group" aria-label="Huellas">${[2,3,4].map(n=>`<button type="button" data-l="${n}" aria-pressed="${n===lobbyLives}">${n}</button>`).join('')}</div></div>
+    <div class="row"><button class="btn ghost" id="botBtn">Agregar bot</button><button class="btn big" id="startBtn">¡Que empiece!</button></div>
+    <details><summary>¿Cómo se juega?</summary><ul>
+      <li>Todos responden <b>la misma pregunta al mismo tiempo</b>, cada uno en su celu. Tenés 25 segundos y <b>2 intentos</b>.</li>
+      <li>Hay tres juegos que se van turnando: <b>Duelo clásico</b> (las letras de la respuesta van apareciendo), <b>Revoltijo</b> (armás la palabra con letras mezcladas) y <b>Una y una</b> (pistas que van saliendo).</li>
+      <li>Si le errás o no llegás, <b>perdés una huella</b>. Si todos aciertan, la pierde <b>el más lento</b>.</li>
+      <li>Sin huellas, <b>se abre la trampilla y caés</b>.</li>
+      <li>Cada acierto suma plata al pozo: más rápido, más plata.</li>
+      <li>El último en pie va a <b>la final: 10 preguntas en 2 minutos</b>. Se asegura la mitad del pozo, cada acierto suma 15% y con las 10 lo duplica.</li>
+    </ul></details>
+    <p class="note">Inspirado en los programas de preguntas con trampillas de la tele.</p>
+  </div>`;
+  $('#nameIn').addEventListener('change',e=>{const v=e.target.value.trim();lsSet('tramp_name',v);const s=mySeat();if(s&&v)store.doc('seats/'+s).set({uid,name:v,bot:false})});
+  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{lobbyLives=+b.dataset.l;lsSet('tramp_lives',lobbyLives);document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  $('#botBtn').onclick=addBot;
+  if($('#copyBtn'))$('#copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(roomLink());toast('Link copiado. Mandalo por WhatsApp.')}catch{const r=document.createRange();r.selectNodeContents($('#roomLink'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Copialo a mano.')}};
+  $('#startBtn').onclick=()=>{if(!mySeat())return toast('Sentate en una trampilla para arrancar.');keepAwake();sfx('start');startGame(lobbyLives)};
+  updateLobby();
+}
+function updateLobby(){
+  const n=SEATS.filter(s=>seats[s]?.uid).length;const me=mySeat();
+  if($('#connCount'))$('#connCount').textContent=`Conectados: ${conns.size+1} celular${conns.size?'es':''}.`;
+  const sb=$('#startBtn');if(!sb)return;
+  sb.disabled=readOnly||n<2||!me;$('#botBtn').disabled=readOnly||n>=4;
+  $('#seatHint').textContent=me?(n<2?'Esperando a que se sienten los demás (o agregá un bot).':`Hay ${n} jugadores. Cualquiera sentado puede arrancar.`):'Escribí tu nombre y tocá un círculo libre de arriba.';
+}
+
+/* ===================== Ronda ===================== */
+let R=null;
+function buildRound(){
+  const st=state,key=roundKey(st),q=getQ(st.type,st.qid),me=myPlaySeat();
+  const playing=!!me&&st.players[me].alive&&!readOnly;
+  const prev=answers[me];const already=playing&&prev?.key===key;
+  R={key,type:st.type,q,start:performance.now(),tries:TRIES,done:already||!playing,playing,built:[],lastSec:null,
+    order:shuffle([...q.answer].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(key))};
+  if(st.type==='revoltillo'){let t=shuffle([...q.answer],rng(key+'t'));if(t.join('')===q.answer)t.reverse();R.tiles=t;R.used=t.map(()=>false)}
+  const c=`var(--${'s'+(1+(st.roundN-1)%4)})`;
+  $('#main').innerHTML=`<div class="card" id="rcard" style="--c:${c}">
+    <div class="gametag">${TYPE_NAME[st.type]}</div>
+    <p class="help">${TYPE_HELP[st.type]}</p>
+    <div class="timer" id="timer"><i></i></div>
+    ${st.type==='pistas'?`<ol class="clues" id="clues"></ol>`:`<p class="question">${esc(q.text)}</p>`}
+    <div class="slots ${q.answer.length>11?'dense':''}" id="slots"></div>
+    ${playing&&!already?(st.type==='revoltillo'?`<div class="tiles" id="tiles">${R.tiles.map((ch,i)=>`<button class="tile" data-i="${i}">${esc(ch)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="delBtn">Borrar</button></div>`
+      :`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="Tu respuesta" aria-label="Tu respuesta"><button class="btn">Dale</button></form>`):''}
+    <div class="msg" id="rmsg">${!playing?(me?'Estás abajo de la trampilla: mirás la ronda.':'Estás mirando la partida.'):already?(prev.ok?'¡Ya respondiste bien!':'Ya respondiste.'):`Te quedan ${TRIES} intentos`}</div>
+  </div>`;
+  if($('#ansForm')){$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';tryAnswer(v)};setTimeout(()=>$('#ansIn')?.focus(),50)}
+  if($('#tiles')){$('#tiles').onclick=e=>{const b=e.target.closest('.tile');if(!b||R.done)return;const i=+b.dataset.i;if(R.used[i])return;R.used[i]=true;b.disabled=true;R.built.push(i);sfx('tick');drawSlots();
+      if(R.built.length===R.tiles.length){const w=R.built.map(j=>R.tiles[j]).join('');setTimeout(()=>{tryAnswer(w,true)},150)}};
+    $('#delBtn').onclick=()=>{if(R.done)return;const i=R.built.pop();if(i==null)return;R.used[i]=false;$(`.tile[data-i="${i}"]`).disabled=false;drawSlots()}}
+  if(already&&prev.ok)R.won=true;
+  drawSlots();
+}
+function drawSlots(){
+  if(!R)return;const el=$('#slots');if(!el)return;
+  const ans=[...R.q.answer.toUpperCase()],elapsed=performance.now()-R.start;
+  let shown=new Set();
+  if(R.won)shown=new Set(ans.map((_,i)=>i));
+  else if(R.type==='clasico'){const n=R.order.length,base=Math.max(1,Math.ceil(n*.25)),max=Math.max(base,Math.floor(n*.7));R.order.slice(0,Math.min(max,base+Math.floor(elapsed/3000))).forEach(i=>shown.add(i))}
+  else if(R.type==='pistas'&&elapsed>15000)shown.add(R.order.length?[...R.q.answer].findIndex(c=>c!==' '):0);
+  let li=0;const words=[];let cur=[];
+  ans.forEach((ch,i)=>{if(ch===' '){words.push(cur);cur=[];return}
+    let txt='',cls='slot';
+    if(R.type==='revoltillo'&&!R.won){const b=R.built[li];if(b!=null){txt=R.tiles[b];cls+=' shown'}}
+    else if(shown.has(i)){txt=ch;cls+=R.won?' win':' shown'}
+    cur.push(`<span class="${cls}">${esc(txt)}</span>`);li++});
+  words.push(cur);
+  const html=words.map(w=>`<span class="word">${w.join('')}</span>`).join('');
+  if(el.innerHTML!==html)el.innerHTML=html;
+}
+function drawClues(){
+  const el=$('#clues');if(!el||!R)return;const n=Math.min(4,Math.floor((performance.now()-R.start)/5000)+1);
+  if(el.children.length&&el.dataset.n==n)return;el.dataset.n=n;
+  el.innerHTML=R.q.clues.map((c,i)=>i<n?`<li><b>${i+1}</b>${esc(c)}</li>`:`<li class="wait"><b>${i+1}</b>Pista en ${Math.ceil(((i)*5000-(performance.now()-R.start))/1000)}s</li>`).join('');
+}
+function tryAnswer(v,isTiles){
+  if(!R||R.done||!v.trim())return;
+  if(matches(v,R.q.answer,R.q.alts)){finishRound(true);return}
+  R.tries--;sfx('bad');const card=$('#rcard');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
+  if(isTiles){R.built=[];R.used=R.used.map(()=>false);document.querySelectorAll('.tile').forEach(b=>b.disabled=false);drawSlots()}
+  if(R.tries<=0){finishRound(false);return}
+  $('#rmsg').className='msg bad';$('#rmsg').textContent=`¡No! Te queda ${R.tries} intento`;
+}
+function finishRound(ok){
+  R.done=true;const ms=Math.min(T,Math.round(performance.now()-R.start));
+  writeAnswer(myPlaySeat(),{key:R.key,ok,ms});
+  if(ok){R.won=true;sfx('ok');drawSlots()}
+  const m=$('#rmsg');m.className='msg '+(ok?'ok':'bad');m.textContent=ok?`¡Correcto! ${(ms/1000).toFixed(1)} s. Esperá a los demás…`:'Te quedaste sin intentos. Rezale al piso…';
+  $('#ansForm')?.remove();$('#tiles')?.remove();$('#delBtn')?.parentElement.remove();
+}
+
+/* ===================== Resultado de ronda ===================== */
+function buildReveal(){
+  const st=state,r=st.result,q=getQ(st.type,st.qid),me=myPlaySeat();
+  const order=Object.keys(r.res).sort((a,b)=>{const A=r.res[a],B=r.res[b];if(A.ok!==B.ok)return A.ok?-1:1;return(A.ms??1e9)-(B.ms??1e9)});
+  const rows=order.map(s=>{const p=st.players[s],x=r.res[s];const lost=r.lose.includes(s),fell=r.fell.includes(s);
+    const det=x.ok?`${(x.ms/1000).toFixed(1)} s · +${money(r.gains[s])}`:(x.none?'No llegó':'Le erró');
+    const tag=fell?'<span class="tag bad">¡Cayó!</span>':lost?'<span class="tag bad">−1 huella</span>':'<span class="tag ok">Sigue</span>';
+    return `<div class="rline ${fell?'fell':''}" style="--c:var(--${s})"><i class="dot"></i><div class="who"><b>${esc(p.name)}${s===me?' (vos)':''}</b><span>${det}</span></div>${tag}</div>`}).join('');
+  const note=r.note==='slow'?'Todos acertaron: el más lento pierde una huella.':r.note==='saved'?'¡Nadie se cae! Se iban todos juntos, así que se salvaron.':'';
+  const quip=r.fell.length?pick(QUIPS_FALL,r.key):pick(QUIPS_OK,r.key);
+  $('#main').innerHTML=`<div class="card"><div class="gametag">Ronda ${st.roundN} · ${TYPE_NAME[st.type]}</div>
+    <div><p class="note center">La respuesta era</p><div class="answer">${esc(q.answer.toUpperCase())}</div></div>
+    ${note?`<div class="banner">${note}</div>`:''}
+    <div class="res">${rows}</div><p class="quip">${esc(quip)}</p></div>`;
+  if(r.fell.length)sfx('fall');
+  if(me&&r.fell.includes(me))showFall();
+}
+function showFall(){
+  try{navigator.vibrate&&navigator.vibrate([200,80,400])}catch{}
+  const o=document.createElement('div');o.className='overlay';o.innerHTML=`<div class="inner"><h1>¡CAÍSTE!</h1><p>Se abrió tu trampilla. Desde abajo podés seguir mirando la partida.</p><button class="btn">Seguir mirando</button></div>`;
+  o.querySelector('button').onclick=()=>o.remove();document.body.appendChild(o);setTimeout(()=>o.remove(),6000);
+}
+
+/* ===================== Intro ===================== */
+function buildIntro(){
+  const names=SEATS.filter(s=>state.players[s]).map(s=>state.players[s].name);
+  $('#main').innerHTML=`<div class="card center"><div class="gametag">Arranca el programa</div><div class="count" id="cnt">3</div><p>${esc(names.join(' · '))}</p><p class="note">${state.lives} huellas cada uno. El último en pie va a la final.</p></div>`;
+  R={introStart:performance.now()};sfx('start');
+}
+
+/* ===================== Final ===================== */
+let F=null;
+function buildFinal(){
+  const st=state,f=st.final,p=st.players[f.seat],me=myPlaySeat();
+  const isMe=me===f.seat&&!readOnly&&!p.bot;
+  const prev=answers[f.seat];const already=isMe&&prev?.key===f.key&&prev.done;
+  F={key:f.key,start:performance.now(),queue:f.qids.slice(),correct:(prev?.key===f.key?prev.correct:0)||0,isMe,done:already,seat:f.seat};
+  if(isMe&&prev?.key===f.key&&prev.solved)F.queue=F.queue.filter(id=>!prev.solved.includes(id));
+  F.solved=(prev?.key===f.key&&prev.solved)||[];
+  $('#main').innerHTML=`<div class="card" style="--c:var(--gold)">
+    <div class="gametag">La final${f.byPozo?' · por pozo':''}</div>
+    <h2>${isMe?'¡Llegaste a la final!':esc(p.name)+' juega la final'}</h2>
+    <p class="help">10 preguntas en 2 minutos. ${isMe?'Tenés asegurado':'Tiene asegurado'} el 50% del pozo; cada acierto suma 15%. Con las 10, se duplica.</p>
+    <div class="fstats"><div class="fstat"><b id="fClock">2:00</b><span>Tiempo</span></div><div class="fstat"><b id="fCount">0/10</b><span>Aciertos</span></div></div>
+    <div class="timer" id="ftimer"><i></i></div>
+    ${isMe&&!already?`<p class="question" id="fq"></p><div class="slots" id="fslots"></div>
+      <form class="ans" id="fForm" autocomplete="off"><input id="fIn" enterkeyhint="send" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="Tu respuesta" aria-label="Tu respuesta"><button class="btn">Dale</button></form>
+      <div class="row"><button class="btn ghost" id="passBtn">Paso</button></div>`:`<p class="center note">Pozo en juego</p><div class="bigmoney" id="fMoney">${money(p.pozo*.5)}</div>${p.bot?'<p class="center note">El bot está pensando…</p>':''}`}
+    <div class="msg" id="fmsg"></div></div>`;
+  if(isMe&&!already){
+    $('#fForm').onsubmit=e=>{e.preventDefault();const v=$('#fIn').value;$('#fIn').value='';finalAnswer(v)};
+    $('#passBtn').onclick=()=>{if(F.done)return;F.queue.push(F.queue.shift());drawFinalQ();$('#fIn').focus()};
+    drawFinalQ();setTimeout(()=>$('#fIn')?.focus(),50);keepAwake();
+  }
+  updateFinal();
+}
+function drawFinalQ(){
+  if(!F.queue.length)return;const id=F.queue[0],q=getQ('final',id);
+  $('#fq').textContent=q.text;
+  const ans=[...q.answer.toUpperCase()];const idx=ans.map((c,i)=>c===' '?-1:i).filter(i=>i>=0);
+  const show=new Set(shuffle(idx,rng(F.key+id)).slice(0,Math.floor(idx.length*.4)));
+  let words=[[]];ans.forEach((ch,i)=>{if(ch===' ')return words.push([]);words[words.length-1].push(`<span class="slot ${show.has(i)?'shown':''}">${show.has(i)?esc(ch):''}</span>`)});
+  $('#fslots').innerHTML=words.map(w=>`<span class="word">${w.join('')}</span>`).join('');
+}
+function finalAnswer(v){
+  if(F.done||!v.trim())return;const id=F.queue[0],q=getQ('final',id);
+  if(matches(v,q.answer,q.alts)){F.correct++;F.solved.push(id);F.queue.shift();sfx('ok');
+    const m=$('#fmsg');m.className='msg ok';m.textContent='¡Bien!';
+    const done=F.correct>=10||!F.queue.length;
+    writeAnswer(F.seat,{key:F.key,correct:F.correct,solved:F.solved,done});
+    if(done)return finishFinal();drawFinalQ();updateFinal();
+  }else{sfx('bad');const m=$('#fmsg');m.className='msg bad';m.textContent='No. Probá de nuevo o pasá.';const c=$('#main .card');c.classList.remove('shake');void c.offsetWidth;c.classList.add('shake')}
+}
+function finishFinal(){F.done=true;writeAnswer(F.seat,{key:F.key,correct:F.correct,solved:F.solved,done:true});
+  $('#fForm')?.remove();$('#passBtn')?.parentElement.remove();$('#fq')?.remove();$('#fslots')?.remove();
+  const m=$('#fmsg');m.className='msg ok';m.textContent=`¡Terminaste! ${F.correct} de 10.`;updateFinal()}
+function updateFinal(){
+  if(!F||!state||state.phase!=='final')return;const f=state.final,p=state.players[f.seat];
+  const a=answers[f.seat];const c=F.isMe?F.correct:(a?.key===f.key?a.correct:0)||0;
+  const cnt=$('#fCount');if(cnt)cnt.textContent=`${c}/10`;
+  const mo=$('#fMoney');if(mo)mo.textContent=money(Math.round(p.pozo*(.5+.15*c)/100)*100);
+}
+
+/* ===================== Fin ===================== */
+function buildEnd(){
+  const st=state,c=st.champion,p=st.players[c.seat],me=myPlaySeat();
+  const rank=[c.seat,...st.fallOrder.slice().reverse().filter(s=>s!==c.seat)];
+  const rows=rank.map((s,i)=>{const x=st.players[s];return `<div class="rline" style="--c:var(--${s})"><i class="dot"></i><div class="who"><b>${i+1}. ${esc(x.name)}${s===me?' (vos)':''}</b><span>${i===0?`Final: ${c.correct}/10`:'Cayó'}</span></div><span class="tag ${i===0?'ok':''}">${money(i===0?c.finalPozo:x.pozo)}</span></div>`}).join('');
+  const seated=!!mySeat()&&!readOnly;
+  $('#main').innerHTML=`<div class="card"><div class="gametag">Ganador del programa</div>
+    <h2 class="center">${esc(p.name)}${c.seat===me?' (¡vos!)':''}</h2>
+    <div class="bigmoney">${money(c.finalPozo)}</div>
+    <p class="center note">Pozo antes de la final ${money(c.base)} · ${c.correct===10?'¡Lo duplicó!':`${c.correct} de 10 en la final`}</p>
+    <div class="res">${rows}</div>
+    ${seated?`<div class="row"><button class="btn ghost" id="lobbyBtn">Volver al lobby</button><button class="btn big" id="againBtn">Revancha</button></div>`:''}</div>`;
+  sfx('win');
+  if(seated){$('#againBtn').onclick=()=>{sfx('start');startGame(st.lives)};$('#lobbyBtn').onclick=()=>writeState({phase:'lobby',hostUid:uid})}
+}
+
+/* ===================== Render principal ===================== */
+let viewKey='';
+function onState(){
+  if(!store){if(viewKey!=='connect'){viewKey='connect';buildConnect()}renderStage();return}
+  if(state){const pk=phaseKey(state);if(!seenAt[pk])seenAt[pk]=performance.now()}
+  const ph=!state||state.phase==='lobby'||!state.players?'lobby':state.phase;
+  const vk=ph==='lobby'?'lobby':phaseKey(state);
+  if(vk!==viewKey){viewKey=vk;R=null;F=null;
+    ({lobby:buildLobby,intro:buildIntro,round:buildRound,reveal:buildReveal,final:buildFinal,end:buildEnd})[ph]();}
+  else if(ph==='lobby')updateLobby();
+  $('#roundChip').textContent=ph==='lobby'?'Lobby':ph==='intro'?'Arranca':ph==='final'?'Final':ph==='end'?'Fin':`Ronda ${state.roundN}`;
+  renderStage();
+}
+function onSeats(){if(viewKey==='lobby'){updateLobby()}renderStage()}
+function onAnswers(){renderStage();updateFinal()}
+
+/* ===================== Bucle de animación ===================== */
+function tick(){
+  requestAnimationFrame(tick);
+  if(R&&R.introStart){const c=$('#cnt');if(c){const n=Math.max(1,3-Math.floor((performance.now()-R.introStart)/1200));if(c.textContent!=n){c.textContent=n;sfx('tick')}}}
+  if(R&&R.key){
+    const el=performance.now()-R.start,left=Math.max(0,1-el/T);
+    const t=$('#timer');if(t){t.firstChild.style.transform=`scaleX(${left})`;t.classList.toggle('low',left<.2)}
+    if(!R.won)drawSlots();if(R.type==='pistas')drawClues();
+    const sec=Math.ceil((T-el)/1000);if(!R.done&&sec<=5&&sec>0&&sec!==R.lastSec){R.lastSec=sec;sfx('tick')}
+    if(!R.done&&el>=T)finishRound(false);
+  }
+  if(F){const el=performance.now()-F.start,rem=Math.max(0,FINAL_MS-el);
+    const ck=$('#fClock');if(ck){const s=Math.ceil(rem/1000);ck.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+    const t=$('#ftimer');if(t){t.firstChild.style.transform=`scaleX(${rem/FINAL_MS})`;t.classList.toggle('low',rem<20000)}
+    if(F.isMe&&!F.done&&rem<=0)finishFinal();
+  }
+  // Rescate si el anfitrión se fue
+  const hb=$('#hostBar');
+  if(state&&!readOnly&&mySeat()&&!isHost()&&['intro','round','reveal','final'].includes(state.phase)){
+    const lim=state.phase==='final'?FINAL_MS+20000:T+15000;hb.hidden=Date.now()-lastChange<lim}else hb.hidden=true;
+}
+$('#takeoverBtn').onclick=()=>{if(!state)return;const st=clone(state);st.hostUid=uid;writeState(st);toast('Ahora manejás vos el juego.')};
+
+/* ===================== Red (sin servidor: un celu arma la sala) ===================== */
+const PREFIX='trampilla-daci-v1-';
+const PEER_OPTS={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
+const PATH_OK=/^(game\/state|seats\/s[1-4]|answers\/s[1-4])$/;
+const roomLink=()=>location.origin+location.pathname+'?sala='+roomCode;
+function genCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i++)c+=A[Math.floor(Math.random()*A.length)];return c}
+function netBar(t){const b=$('#netBar');b.hidden=!t;b.textContent=t||''}
+function buildConnect(msg){
+  const code=(new URLSearchParams(location.search).get('sala')||'').toUpperCase().slice(0,4);
+  const hasPeer=typeof window.Peer==='function';
+  $('#main').innerHTML=`<div class="card">
+    <h2>Armá la sala</h2>
+    <p class="help">Un celular crea la sala y los demás se suman con el código. Anda mejor si están todos en el mismo Wi-Fi.</p>
+    ${hasPeer?`<button class="btn big" id="createBtn">Crear sala</button>
+    <div class="or">o sumate a una</div>
+    <label class="f" for="codeIn">Código de la sala<input id="codeIn" maxlength="4" autocomplete="off" autocapitalize="characters" value="${esc(code)}" placeholder="ABCD"></label>
+    <button class="btn" id="joinBtn">Unirme</button>`:`<div class="banner">No se pudo cargar la conexión entre celulares. Revisá que tengas internet y recargá la página.</div>`}
+    <button class="btn ghost" id="soloBtn">Practicar solo con bots</button>
+    <div class="msg bad" id="cmsg">${esc(msg||'')}</div>
+  </div>`;
+  if(hasPeer){$('#createBtn').onclick=()=>{keepAwake();createRoom()};
+    $('#joinBtn').onclick=()=>{const c=$('#codeIn').value.trim().toUpperCase();if(!/^[A-Z]{4}$/.test(c))return toast('El código tiene 4 letras.');keepAwake();joinRoom(c)};
+    $('#codeIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('#joinBtn').click()})}
+  $('#soloBtn').onclick=()=>{netRole='solo';store=makeLocalStore();enterGame()};
+}
+function connectMsg(t){const m=$('#cmsg');if(m)m.textContent=t}
+function createRoom(){
+  netRole='host';const code=genCode();connectMsg('Creando la sala…');
+  peer=new Peer(PREFIX+code,PEER_OPTS);
+  peer.on('open',()=>{roomCode=code;store=makeLocalStore();
+    let pend=false;store.onChange(()=>{if(pend)return;pend=true;setTimeout(()=>{pend=false;const d=store.dump();conns.forEach(c=>{try{c.send({t:'sync',data:d})}catch{}})},0)});
+    enterGame()});
+  peer.on('connection',c=>{
+    c.on('open',()=>{conns.add(c);c.send({t:'sync',data:store.dump()});updateLobby()});
+    c.on('data',m=>onHostMsg(c,m));
+    c.on('close',()=>{conns.delete(c);updateLobby()});c.on('error',()=>{conns.delete(c);updateLobby()});
+  });
+  peer.on('disconnected',()=>{try{peer.reconnect()}catch{}});
+  peer.on('error',e=>{
+    if(e.type==='unavailable-id'&&!entered){peer.destroy();return createRoom()}
+    if(!entered){peer.destroy();netRole=null;connectMsg('No se pudo crear la sala. Revisá la conexión y probá de nuevo.')}
+    else console.warn(e)});
+}
+function onHostMsg(c,m){
+  if(!m||m.t!=='set'||typeof m.path!=='string'||!PATH_OK.test(m.path)||!m.data||typeof m.data!=='object')return;
+  if(m.path.startsWith('seats/')&&m.data.uid){const cur=store.peek(m.path);
+    if(cur&&cur.uid&&cur.uid!==m.data.uid&&!cur.bot){try{c.send({t:'err',msg:'Te ganaron ese lugar.'});c.send({t:'sync',data:store.dump()})}catch{}return}}
+  store.doc(m.path).set(m.data);
+}
+function joinRoom(code){
+  netRole='client';roomCode=code;connectMsg('Buscando la sala '+code+'…');
+  store=null;const mirror=makeMirrorStore(m=>{if(conn&&conn.open)conn.send(m);else toast('Sin conexión con la sala.')});
+  peer=new Peer(PEER_OPTS);
+  peer.on('open',()=>dial(mirror));
+  peer.on('disconnected',()=>{try{peer.reconnect()}catch{}});
+  peer.on('error',e=>{
+    if(e.type==='peer-unavailable'){if(!entered){peer.destroy();netRole=null;connectMsg('No encontramos la sala '+code+'. Revisá el código o que el celu que la creó siga con la página abierta.')}else netBar('La sala no responde. Reintentando…')}
+    else if(!entered){peer.destroy();netRole=null;connectMsg('No se pudo conectar. Probá de nuevo.')}});
+}
+function dial(mirror){
+  conn=peer.connect(PREFIX+roomCode,{reliable:true});
+  conn.on('open',()=>netBar(''));
+  conn.on('data',m=>{if(!m)return;if(m.t==='sync'){mirror.apply(m.data);if(!entered){store=mirror;enterGame()}}else if(m.t==='err')toast(m.msg)});
+  conn.on('close',()=>{if(!entered)return;netBar('Se cortó la conexión con la sala. Reintentando…');setTimeout(()=>{if(peer&&!peer.destroyed)dial(mirror)},3000)});
+}
+function enterGame(){
+  if(entered)return;entered=true;viewKey='';
+  store.doc('game/state').onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&state&&isHost()&&d.hostUid===uid)return;state=d?clone(d):null;lastChange=Date.now();onState()});
+  store.collection('seats').onSnapshot(q=>{seats={};q.docs.forEach(d=>{if(d.exists)seats[d.id]=d.data()});onSeats()});
+  store.collection('answers').onSnapshot(q=>{answers={};q.docs.forEach(d=>{if(d.exists)answers[d.id]=d.data()});onAnswers()});
+  onState();
+}
+window.addEventListener('beforeunload',e=>{if(netRole==='host'&&conns.size){e.preventDefault();e.returnValue=''}});
+
+/* ===================== Arranque ===================== */
+uid=lsGet('tramp_uid');if(!uid){uid='u'+Math.random().toString(36).slice(2,10);lsSet('tramp_uid',uid)}
+onState();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
