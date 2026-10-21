@@ -15,6 +15,7 @@
   --s1:#ffbf3c; --s2:#7ee6ff; --s3:#ff7ad9; --s4:#b69bff;
   --display:"Bungee","Arial Black",Impact,sans-serif;
   --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --canvas:#f6f2ff; --ink-dark:#16123a; --spicy:#ff4a6b;
   color-scheme:dark;
 }
 html,body{height:100%}
@@ -145,6 +146,28 @@ details ul b{color:var(--ink)}
 #codeIn{text-transform:uppercase;letter-spacing:.3em;font-family:var(--display);text-align:center}
 .linkbox{display:flex;gap:8px;align-items:center}
 .linkbox code{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--mute);user-select:all}
+textarea{font:inherit;color:var(--ink);background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px 14px;font-size:17px;resize:vertical;text-transform:none;letter-spacing:0;font-weight:500}
+textarea:focus{border-color:var(--ice);outline:none}
+.spicycard{border-color:color-mix(in srgb,var(--spicy) 55%,var(--line));background:linear-gradient(180deg,color-mix(in srgb,var(--spicy) 10%,var(--panel)),var(--panel))}
+.spicycard .gametag{color:var(--spicy)}
+.seg button.spicy[aria-pressed="true"]{color:var(--spicy)}
+.spicyli b{color:var(--spicy)!important}
+.bigopts .btn{font-size:20px;padding:16px}
+.for{color:var(--mute);font-weight:500}
+.opts{display:flex;flex-direction:column;gap:8px}
+.excuse{display:grid;grid-template-columns:28px 1fr;gap:4px 10px;align-items:start;text-align:left;background:var(--bg2);border:2px solid var(--line);border-radius:12px;padding:12px;font-size:16px;font-weight:500}
+.excuse b{font-family:var(--display);font-weight:400;color:var(--ice);font-size:18px;grid-row:span 2}
+.excuse em{grid-column:2;font-style:normal;font-size:12px;color:var(--mute);font-weight:700;text-transform:uppercase;letter-spacing:.06em}
+.excuse[aria-pressed="true"]{border-color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,var(--bg2))}
+.excuse:disabled{opacity:.6}
+.excuse.static{border-left:5px solid var(--c)}
+.secret{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--bg);border:2px dashed var(--spicy);border-radius:12px;padding:10px}
+.secret span{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--mute);font-weight:700}
+.secret b{font-family:var(--display);font-weight:400;font-size:26px;color:var(--spicy);text-align:center;overflow-wrap:anywhere}
+.canvas{display:block;width:100%;aspect-ratio:4/3;max-width:100%;border-radius:12px;background:var(--canvas);touch-action:none}
+.canvas.drawing{box-shadow:0 0 0 3px var(--spicy)}
+.prenda{display:flex;flex-direction:column;gap:8px;background:var(--bg2);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:12px}
+.prenda p{margin:0;font-size:17px;font-weight:700}
 </style>
 </head>
 <body>
@@ -287,12 +310,105 @@ const FINALQ=[
 ["Primer mes del año","Enero"],["Ave que habla y repite palabras","Loro"],["100 dividido 4","25",["veinticinco"]],
 ];
 
+/* ===================== Modo picante (+18) ===================== */
+// Preguntas incómodas: [pregunta (en 2da persona), opción A, opción B]
+const INCOMODA=[
+["¿Alguna vez revisaste el celular de tu pareja a escondidas?","Sí","No"],
+["¿Fingiste alguna vez en la cama?","Sí","No"],
+["En tu pareja, ¿quién arranca más seguido?","Yo","Mi pareja"],
+["¿Te parece atractivo algún amigo o amiga de tu pareja?","Sí","No"],
+["¿Alguna vez se te escapó otro nombre en un momento íntimo?","Sí","No"],
+["¿Mentiste alguna vez sobre con cuántas personas estuviste?","Sí","No"],
+["¿Lo hiciste alguna vez en un lugar público?","Sí","No"],
+["¿Usaste algún juguete con tu pareja?","Sí","No"],
+["¿Stalkeaste a algún ex de tu pareja?","Sí","No"],
+["¿Te hiciste el dormido para zafar de algo íntimo?","Sí","No"],
+["En tu pareja, ¿quién es más celoso?","Yo","Mi pareja"],
+["¿Tuviste alguna vez un sueño subido de tono con alguien de esta mesa?","Sí","No"],
+["¿Mandaste alguna vez fotos subidas de tono?","Sí","No"],
+["En tu pareja, ¿quién tiene ganas más seguido?","Yo","Mi pareja"],
+["¿Inventaste alguna vez un dolor de cabeza para zafar?","Sí","No"],
+["¿Volverías con algún ex si estuvieras soltero/a?","Sí","No"],
+["¿Hiciste en un telo algo que no harías en tu casa?","Sí","No"],
+["¿Besaste a alguien estando en pareja?","Sí","No"],
+["¿Preferís luz prendida o apagada?","Prendida","Apagada"],
+["¿Te gusta más de mañana o de noche?","De mañana","De noche"],
+["¿Alguna vez te disfrazaste para tu pareja?","Sí","No"],
+["¿Tenés alguna fantasía que nunca le contaste a tu pareja?","Sí","No"],
+["¿Borraste alguna vez un chat para que tu pareja no lo vea?","Sí","No"],
+["¿Te gustaría que tu pareja fuera más atrevida?","Sí","No"],
+["¿Lo hiciste alguna vez en el auto?","Sí","No"],
+["¿Quién dijo \"te amo\" primero?","Yo","Mi pareja"],
+["¿Alguna vez te sacaste una foto sin ropa?","Sí","No"],
+["¿Le contaste a un amigo detalles íntimos de tu pareja?","Sí","No"],
+];
+// Excusas: situación familiar de la que hay que zafar
+const EXCUSAS=[
+"Cumpleaños de 80 de la tía abuela. Almuerzo a las 13 en Ezeiza, y hay que llevar la torta.",
+"Bautismo del sobrino de tu cuñado. Domingo a las 9 de la mañana, con misa completa.",
+"Navidad en lo de tus suegros, con el tío que habla de política toda la noche.",
+"Te piden ayuda para la mudanza de tu primo. Sábado, cuarto piso por escalera y llueve.",
+"Acto escolar de tu sobrino. Hace de árbol y dura 3 horas.",
+"Cena de aniversario de tus suegros, con discurso y video de fotos de 40 minutos.",
+"Videollamada familiar de los domingos. Duran 2 horas y la abuela no encuentra la cámara.",
+"Día de la Madre en lo de tu suegra. Llegar a las 11 y ayudar con las pastas.",
+"Casamiento por civil de un primo segundo. Martes a las 10 de la mañana.",
+"Cumple de 15 de una prima que viste dos veces en tu vida. Hay vals obligatorio.",
+"Pileta en lo de tu suegro un domingo a 40 grados, sin sombra.",
+"Tu cuñado te invita a probar su nuevo emprendimiento de multinivel.",
+"Asado familiar donde va a estar tu ex cuñado.",
+"Tu vieja quiere que la acompañes a comprar cortinas toda la tarde.",
+"Reunión familiar para decidir qué hacer con la casa del abuelo. Va a haber gritos.",
+"Té de bebé de tu prima, con juegos de adivinar el pañal.",
+"Torneo de truco familiar hasta las 4 de la mañana. Tu tío hace trampa.",
+"Tu suegra te invita a su clase de zumba para que \"te muevas un poco\".",
+"Cumpleaños del perro de tu cuñada. Sí, hay torta y gorritos.",
+"Viaje en familia de 9 horas en auto a la costa, con los chicos y sin aire.",
+];
+const BOT_EXCUSAS=["Tengo turno con el dentista justo a esa hora.","Se me inundó el baño y espero al plomero.","Me agarró un virus rarísimo, no quiero contagiar.","El perro se comió las llaves del auto.","Justo me toca guardia en el laburo.","Se me murió el celular y no me enteré de nada."];
+// Prendas subidas de tono (siempre se puede elegir perder la huella)
+const PRENDAS=[
+"Hacé un baile sensual de 20 segundos para el jugador de tu derecha.",
+"Dale un beso a tu pareja donde elija el grupo (que no sea en la boca).",
+"Leé en voz alta el último mensaje que le mandaste a tu pareja.",
+"Sacate una prenda. Las medias cuentan, pero el grupo puede abuchear.",
+"Susurrale algo picante al oído a tu pareja. Ella decide si cumpliste.",
+"Mostrá las últimas 5 fotos de tu galería, sin saltear ninguna.",
+"Hacé 10 sentadillas lo más sensual que puedas.",
+"Contá el lugar más raro donde te diste un beso apasionado.",
+"Hacé de stripper con tu abrigo o tu remera durante 15 segundos.",
+"Contá tu fantasía más inocente.",
+"Dale un masaje de 30 segundos en los hombros a quien elija el grupo.",
+"Decí 3 cosas que te gustan del cuerpo de tu pareja.",
+"Hacé una pose de calendario sexy durante 10 segundos.",
+"Contá la verdad: ¿qué es lo más atrevido que hiciste?",
+"Sentate en las piernas de tu pareja hasta la próxima ronda.",
+"Besá a tu pareja como en la primera cita.",
+"Describí tu ropa interior de hoy sin mostrarla.",
+"Hacé una declaración de amor dramática y apasionada a una silla.",
+"Decí con voz sexy la lista de compras del súper.",
+"Imitá cómo coquetea tu pareja cuando quiere algo.",
+"Contá tu peor experiencia en una primera cita.",
+"Dejá que tu pareja te escriba algo con marcador en el brazo.",
+"Mirá a los ojos al jugador de tu izquierda 15 segundos sin reírte.",
+"Mandale a tu pareja un audio diciendo lo que le harías esta noche.",
+"Hacé tu mejor gemido de película… o perdé la huella.",
+"Contá con quién de tus ex fue el mejor beso (sin decir el nombre).",
+"Bailá pegado con tu pareja una canción lenta que elija el grupo.",
+"Dejá que el grupo te revise los emojis más usados del celular.",
+];
+// Palabras para dibujar y adivinar
+const DIBUJO=["Esposas","Jacuzzi","Lencería","Kamasutra","Despedida de soltero","Preservativo","Strip póker","Beso francés","Telo","Látigo","Tanga","Chupón","Luna de miel","Sex shop","Striptease","Desnudo","Ducha de a dos","Vibrador","Ligas","Cucharita","Antifaz","Pole dance","Corpiño","Mañanero","Cama redonda","Espejo en el techo","Crema batida","Masaje con aceite","Bata de seda","Disfraz de enfermera","Nudista","Baile del caño","Cama de agua","Pétalos de rosa","Boxer","Portaligas"];
+
 /* ===================== Utilidades ===================== */
-const T=25000, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=18, TRIES=2;
+const RESCUES=2, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=20, TRIES=2;
+const TIMES={clasico:25000,revoltillo:25000,pistas:25000,excusas:60000,incomoda:30000,dibujo:75000,vote:30000,prenda:90000};
 const SEATS=['s1','s2','s3','s4'];
-const TYPES=['clasico','revoltillo','pistas'];
-const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una'};
-const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.'};
+const TRIVIA=['clasico','revoltillo','pistas'],SPICY=['incomoda','dibujo'];
+const CYCLE={clasico:['clasico','revoltillo','excusas','pistas'],picante:['incomoda','clasico','dibujo','excusas','revoltillo','incomoda','pistas','dibujo']};
+const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una',excusas:'Excusas para zafar',incomoda:'La incómoda',dibujo:'Dibujá y adiviná'};
+const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.'};
+const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#fff';
 const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa'];
 const QUIPS_FALL=['¡Se abrió el piso!','Mandale un saludo a la familia… desde abajo.','Nadie se salva.','Ahora caíste vos.','Chau, nos vemos en la próxima.'];
 const QUIPS_OK=['Qué nivel, eh.','Esto es cultura general.','Venían bien, pero el piso está atento.','Respiren, que sigue.'];
@@ -363,7 +479,7 @@ const mySeat=()=>SEATS.find(s=>seats[s]?.uid&&seats[s].uid===uid)||null;
 const myPlaySeat=()=>{if(!state||!state.players)return null;return SEATS.find(s=>state.players[s]&&state.players[s].uid===uid)||null};
 const isHost=()=>!!state&&state.hostUid===uid;
 const roundKey=st=>st.gameId+':'+st.roundN;
-const phaseKey=st=>!st?'none':st.phase+':'+(st.phase==='round'||st.phase==='reveal'?roundKey(st):st.phase==='final'?st.final.key:(st.gameId||''));
+const phaseKey=st=>!st?'none':st.phase+':'+(['round','reveal','vote','prenda'].includes(st.phase)?roundKey(st):st.phase==='final'?st.final.key:(st.gameId||''));
 
 /* ===================== Escritura de estado (solo anfitrión) ===================== */
 let wq=Promise.resolve();
@@ -374,38 +490,123 @@ function writeAnswer(seat,obj){return store.doc('answers/'+seat).set(obj).catch(
 /* ===================== Lógica del anfitrión ===================== */
 const seenAt={},doneKeys=new Set(),botsDone=new Set();
 const once=(k,fn)=>{if(doneKeys.has(k))return;doneKeys.add(k);fn()};
+const later=(ms,fn)=>setTimeout(fn,ms);
 
-function startGame(lives){
+function startGame(lives,mode){
+  mode=mode==='picante'?'picante':'clasico';
   const players={};
-  SEATS.forEach(s=>{const x=seats[s];if(x&&x.uid)players[s]={uid:x.uid,name:x.name,bot:!!x.bot,lives,pozo:0,alive:true}});
+  SEATS.forEach(s=>{const x=seats[s];if(x&&x.uid)players[s]={uid:x.uid,name:x.name,bot:!!x.bot,lives,pozo:0,alive:true,rescues:RESCUES}});
   if(Object.keys(players).length<2)return toast('Hacen falta al menos 2 jugadores sentados.');
   const gameId=Math.random().toString(36).slice(2,8);const r=rng(gameId);
-  const deck={clasico:shuffle(range(CLASICO.length),r),revoltillo:shuffle(range(REVOLT.length),r),pistas:shuffle(range(PISTAS.length),r),final:shuffle(range(FINALQ.length),r).slice(0,10)};
-  writeState({phase:'intro',hostUid:uid,gameId,lives,players,deck,roundN:0,fallOrder:[],result:null,final:null,champion:null});
+  const deck={clasico:shuffle(range(CLASICO.length),r),revoltillo:shuffle(range(REVOLT.length),r),pistas:shuffle(range(PISTAS.length),r),
+    excusas:shuffle(range(EXCUSAS.length),r),incomoda:shuffle(range(INCOMODA.length),r),dibujo:shuffle(range(DIBUJO.length),r),
+    prenda:shuffle(range(PRENDAS.length),r),final:shuffle(range(FINALQ.length),r).slice(0,10)};
+  writeState({phase:'intro',mode,hostUid:uid,gameId,lives,players,deck,counters:{},turn:Math.floor(r()*4),roundN:0,fallOrder:[],result:null,final:null,champion:null});
 }
 function nextRound(){
-  const st=clone(state);st.roundN++;
-  const type=TYPES[(st.roundN-1)%3];const n=Math.floor((st.roundN-1)/3);
-  st.type=type;st.qid=st.deck[type][n%st.deck[type].length];st.phase='round';st.result=null;
+  const st=clone(state);st.roundN++;st.turn=(st.turn||0)+1;
+  const cyc=CYCLE[st.mode]||CYCLE.clasico;let type=cyc[(st.roundN-1)%cyc.length];
+  const alive=aliveSeats(st);st.actor=null;
+  if(type==='dibujo'){const humans=alive.filter(s=>!st.players[s].bot);if(!humans.length)type='clasico';else st.actor=humans[st.turn%humans.length]}
+  if(type==='incomoda')st.actor=alive[st.turn%alive.length];
+  st.counters=st.counters||{};const n=st.counters[type]||0;st.counters[type]=n+1;
+  st.type=type;st.qid=st.deck[type][n%st.deck[type].length];
+  st.phase='round';st.result=null;st.vote=null;st.prenda=null;
   writeState(st);
 }
 function aliveSeats(st=state){return SEATS.filter(s=>st.players[s]?.alive)}
-function allAnswered(){const k=roundKey(state);return aliveSeats().every(s=>answers[s]?.key===k)}
+function playerSeats(st=state){return SEATS.filter(s=>st.players[s])}
+const isBot=s=>!!state.players[s]?.bot;
+const ansFor=(s,k)=>{const a=answers[s];return a&&a.key===k?a:null};
+
+function roundComplete(){
+  const k=roundKey(state),alive=aliveSeats();
+  if(state.type==='dibujo')return alive.filter(s=>s!==state.actor).every(s=>ansFor(s,k)?.ok);
+  return alive.every(s=>ansFor(s,k));
+}
 function resolveRound(){
-  const st=clone(state),P=st.players,key=roundKey(st),alive=aliveSeats(st);
-  const res={};alive.forEach(s=>{const a=answers[s];res[s]=(a&&a.key===key)?{ok:!!a.ok,ms:a.ms}:{ok:false,ms:null,none:true}});
-  const oks=alive.filter(s=>res[s].ok).sort((a,b)=>res[a].ms-res[b].ms);
-  const fails=alive.filter(s=>!res[s].ok);
-  let lose=[...fails],note='';
-  if(!fails.length&&oks.length>1){lose=[oks[oks.length-1]];note='slow'}
-  const gains={};
-  oks.forEach((s,i)=>{const g=Math.round((10000+20000*Math.max(0,1-res[s].ms/T)+(i===0?5000:0))/100)*100;gains[s]=g;P[s].pozo+=g});
-  if(alive.every(s=>lose.includes(s)&&P[s].lives<=1)){lose=[];note='saved'}
-  const fell=[];
-  lose.forEach(s=>{P[s].lives--;if(P[s].lives<=0){P[s].alive=false;fell.push(s)}});
-  st.fallOrder=[...st.fallOrder,...fell];
-  st.phase='reveal';st.result={key,res,oks,lose,fell,gains,note};
-  writeState(st);
+  const st=clone(state),P=st.players,key=roundKey(st),alive=aliveSeats(st),type=st.type;
+  const rows={},gains={};let lose=[],extra={type,key};
+  const gain=(s,g)=>{g=Math.round(g/100)*100;if(g<=0)return;gains[s]=(gains[s]||0)+g;P[s].pozo+=g};
+  if(TRIVIA.includes(type)){
+    const q=getQ(type,st.qid);const T0=TIMES[type];
+    const res={};alive.forEach(s=>{const a=ansFor(s,key);res[s]=a?{ok:!!a.ok,ms:a.ms}:{ok:false,none:true}});
+    const oks=alive.filter(s=>res[s].ok).sort((a,b)=>res[a].ms-res[b].ms);
+    lose=alive.filter(s=>!res[s].ok);
+    if(!lose.length&&oks.length>1){lose=[oks[oks.length-1]];extra.note='slow'}
+    oks.forEach((s,i)=>gain(s,10000+20000*Math.max(0,1-res[s].ms/T0)+(i===0?5000:0)));
+    alive.forEach(s=>rows[s]=res[s].ok?`${(res[s].ms/1000).toFixed(1)} s`:(res[s].none?'No llegó':'Le erró'));
+    extra.title='La respuesta era';extra.big=q.answer.toUpperCase();
+  }else if(type==='incomoda'){
+    const q=INCOMODA[st.qid],t=st.actor,ta=ansFor(t,key);const tp=ta?ta.pick:null;
+    if(tp===0||tp===1){
+      alive.filter(s=>s!==t).forEach(s=>{const g=ansFor(s,key)?.guess;if(g===tp){gain(s,15000);rows[s]='La conoce bien'}else{gain(t,10000);rows[s]=g==null?'No votó':'Le erró'}});
+      rows[t]='Respondió';extra.title=`${P[t].name} respondió`;extra.big=q[tp+1];extra.sub=q[0];extra.quip=`${P[t].name}, ahora explicá eso…`;
+    }else{lose=[t];rows[t]=ta?'Se negó a responder':'No respondió';alive.filter(s=>s!==t).forEach(s=>rows[s]='—');
+      extra.title=`${P[t].name} no quiso responder`;extra.big='¡SE NEGÓ!';extra.sub=q[0]}
+  }else if(type==='excusas'){
+    st.phase='vote';
+    st.vote={key:key+':v',list:shuffle(alive.map(s=>({seat:s,text:String(ansFor(s,key)?.text||'').trim().slice(0,160)})))};
+    return writeState(st);
+  }else if(type==='dibujo'){
+    const d=st.actor,T0=TIMES.dibujo;const gs=alive.filter(s=>s!==d);
+    const oks=gs.filter(s=>ansFor(s,key)?.ok).sort((a,b)=>ansFor(a,key).ms-ansFor(b,key).ms);
+    oks.forEach((s,i)=>{gain(s,10000+15000*Math.max(0,1-ansFor(s,key).ms/T0)+(i===0?5000:0));gain(d,8000)});
+    gs.forEach(s=>rows[s]=oks.includes(s)?`Adivinó en ${(ansFor(s,key).ms/1000).toFixed(0)} s`:'No la sacó');
+    rows[d]=oks.length?`Dibujó · ${oks.length} adivinaron`:'Nadie adivinó su dibujo';
+    if(!oks.length)lose=[d];
+    extra.title='La palabra era';extra.big=DIBUJO[st.qid].toUpperCase();
+  }
+  settle(st,lose,rows,gains,extra);
+}
+function resolveVote(){
+  const st=clone(state),P=st.players,v=st.vote,alive=aliveSeats(st);
+  const counts={};v.list.forEach(e=>counts[e.seat]=0);
+  playerSeats(st).forEach(s=>{let to;if(P[s].bot){const opts=v.list.map(e=>e.seat).filter(x=>x!==s);to=opts[Math.floor(Math.random()*opts.length)]}else to=ansFor(s,v.key)?.vote;
+    if(to&&to!==s&&counts[to]!=null)counts[to]++});
+  const vals=v.list.map(e=>counts[e.seat]);const max=Math.max(...vals),min=Math.min(...vals);
+  const rows={},gains={};
+  v.list.forEach(e=>{const s=e.seat;let g=counts[s]*15000;if(counts[s]===max&&max>0&&vals.filter(x=>x===max).length===1)g+=10000;
+    if(g){gains[s]=g;P[s].pozo+=g}rows[s]=`${counts[s]} voto${counts[s]===1?'':'s'}`});
+  const lose=min<max?v.list.filter(e=>counts[e.seat]===min).map(e=>e.seat):[];
+  const top=v.list.filter(e=>counts[e.seat]===max).map(e=>P[e.seat].name);
+  settle(st,lose,rows,gains,{type:'excusas',key:roundKey(st),title:max>0?'La mejor excusa':'Nadie convenció a nadie',big:max>0?top.join(' y '):'¡EMPATE!',
+    excusas:v.list.map(e=>({seat:e.seat,text:e.text,votes:counts[e.seat]})),note:lose.length?'least':''});
+}
+function settle(st,lose,rows,gains,extra){
+  const alive=aliveSeats(st);
+  if(lose.length&&alive.every(s=>lose.includes(s)&&st.players[s].lives<=1)){lose=[];extra.note='saved'}
+  st.result={...extra,rows,gains,lose,fell:[],prendas:null};
+  const canRescue=lose.filter(s=>(st.players[s].rescues??RESCUES)>0);
+  if(st.mode==='picante'&&canRescue.length){
+    st.counters.prenda=st.counters.prenda||0;const items={};
+    canRescue.forEach(s=>{items[s]=st.deck.prenda[st.counters.prenda++%st.deck.prenda.length]});
+    st.phase='prenda';st.prenda={key:extra.key+':p',items};
+    return writeState(st);
+  }
+  applyLose(st);writeState(st);
+}
+function applyLose(st){
+  const fell=[];st.result.lose.forEach(s=>{const p=st.players[s];p.lives--;if(p.lives<=0){p.alive=false;fell.push(s)}});
+  st.result.fell=fell;st.fallOrder=[...st.fallOrder,...fell];st.phase='reveal';
+}
+function prendaVoters(loser){return playerSeats().filter(s=>s!==loser&&!isBot(s))}
+function prendaComplete(){
+  const pk=state.prenda.key;
+  return Object.keys(state.prenda.items).every(s=>{const c=isBot(s)?(botPrenda[pk+s]||null):ansFor(s,pk)?.choice;
+    if(!c)return false;if(c!=='hago')return true;return prendaVoters(s).every(v=>typeof ansFor(v,pk)?.votes?.[s]==='boolean')});
+}
+const botPrenda={};
+function resolvePrenda(){
+  const st=clone(state),pk=st.prenda.key,details={},saved=[];
+  Object.keys(st.prenda.items).forEach(s=>{
+    const c=isBot(s)?botPrenda[pk+s]:ansFor(s,pk)?.choice;
+    if(c!=='hago'){details[s]={choice:'paso'};return}
+    let yes=0,no=0;playerSeats(st).filter(v=>v!==s).forEach(v=>{if(st.players[v].bot){yes++;return}const x=ansFor(v,pk)?.votes?.[s];if(x===true)yes++;else if(x===false)no++});
+    const ok=yes>=no;details[s]={choice:'hago',yes,no,ok};if(ok){saved.push(s);st.players[s].rescues=Math.max(0,(st.players[s].rescues??RESCUES)-1)}
+  });
+  st.result.prendas=details;st.result.lose=st.result.lose.filter(s=>!saved.includes(s));
+  applyLose(st);writeState(st);
 }
 function advance(){
   const alive=aliveSeats();
@@ -430,17 +631,29 @@ function endGame(correct){
   writeState(st);
 }
 function scheduleBots(){
-  const k=roundKey(state);if(botsDone.has(k))return;botsDone.add(k);
-  aliveSeats().forEach(s=>{if(!state.players[s].bot)return;const d=3500+Math.random()*16000,ok=Math.random()<.72;
-    setTimeout(()=>{if(state&&roundKey(state)===k&&state.phase==='round')writeAnswer(s,{key:k,ok,ms:Math.round(d)})},d)});
+  const pk=phaseKey(state);if(botsDone.has(pk))return;botsDone.add(pk);
+  const still=()=>state&&phaseKey(state)===pk;
+  if(state.phase==='round'){
+    const k=roundKey(state),type=state.type,actor=state.actor;
+    aliveSeats().forEach(s=>{if(!isBot(s))return;
+      if(TRIVIA.includes(type)){const d=3500+Math.random()*16000,ok=Math.random()<.72;later(d,()=>still()&&writeAnswer(s,{key:k,ok,ms:Math.round(d)}))}
+      else if(type==='excusas')later(5000+Math.random()*30000,()=>still()&&writeAnswer(s,{key:k,text:BOT_EXCUSAS[Math.floor(Math.random()*BOT_EXCUSAS.length)]}));
+      else if(type==='incomoda')later(3000+Math.random()*12000,()=>still()&&writeAnswer(s,s===actor?{key:k,pick:Math.random()<.5?0:1}:{key:k,guess:Math.random()<.5?0:1}));
+      else if(type==='dibujo'&&s!==actor&&Math.random()<.5){const d=15000+Math.random()*45000;later(d,()=>still()&&writeAnswer(s,{key:k,ok:true,ms:Math.round(d)}))}
+    });
+  }else if(state.phase==='prenda'){
+    const pk=state.prenda.key;Object.keys(state.prenda.items).forEach(s=>{if(!isBot(s))return;const c=Math.random()<.7?'hago':'paso';later(1500+Math.random()*3000,()=>{botPrenda[pk+s]=c;if(still())writeAnswer(s,{key:pk,choice:c,votes:{}})})});
+  }
 }
 setInterval(()=>{
   if(!state||!isHost()||readOnly)return;
   const pk=phaseKey(state);seenAt[pk]??=performance.now();const el=performance.now()-seenAt[pk];
   switch(state.phase){
     case 'intro': if(el>INTRO_MS)once(pk,nextRound);break;
-    case 'round': scheduleBots();if(allAnswered()||el>T+3000)once(pk,resolveRound);break;
-    case 'reveal': if(el>REVEAL_MS)once(pk,advance);break;
+    case 'round': scheduleBots();if(roundComplete()||el>TIMES[state.type]+3000)once(pk,resolveRound);break;
+    case 'vote': if(playerSeats().filter(s=>!isBot(s)).every(s=>ansFor(s,state.vote.key))||el>TIMES.vote+3000)once(pk,resolveVote);break;
+    case 'prenda': scheduleBots();if(prendaComplete()||el>TIMES.prenda+3000)once(pk,resolvePrenda);break;
+    case 'reveal': if(el>(state.result?.type==='incomoda'?15000:state.result?.type==='excusas'?12000:REVEAL_MS))once(pk,advance);break;
     case 'final':{const f=state.final,a=answers[f.seat];
       if(state.players[f.seat].bot){if(el>15000)once(pk,()=>endGame(f.botCorrect))}
       else if(a&&a.key===f.key&&a.done)once(pk,()=>endGame(a.correct));
@@ -454,6 +667,7 @@ function renderStage(){
   const inGame=state&&state.phase!=='lobby'&&state.players;
   const me=inGame?myPlaySeat():mySeat();
   const k=state&&state.phase==='round'?roundKey(state):null;
+  const vk=state&&state.phase==='vote'?state.vote.key:null;
   $('#doors').innerHTML=SEATS.map(s=>{
     const p=inGame?state.players[s]:seats[s]?.uid?seats[s]:null;
     if(!p)return `<button class="door ${s} empty" data-seat="${s}" ${inGame?'disabled':''} aria-label="Lugar libre"><div class="hole"><div class="flap l"></div><div class="flap r"></div><div class="avatar">+</div></div><div class="nm">${inGame?'Vacío':'Sentate acá'}</div><div class="huellas"></div><div class="st"></div></button>`;
@@ -463,11 +677,13 @@ function renderStage(){
     let st='',stc='';
     if(!inGame)st=p.bot?'Bot':(s===me?'Vos':'Listo');
     else if(out)st='Cayó';
-    else if(k&&answers[s]?.key===k){st='Respondió';stc='ok'}
+    else if(k&&state.actor===s){st=state.type==='dibujo'?'Dibuja':'Le toca';stc='ok'}
+    else if(k&&(state.type==='dibujo'?answers[s]?.key===k&&answers[s].ok:answers[s]?.key===k)){st=state.type==='dibujo'?'¡La sacó!':'Respondió';stc='ok'}
+    else if(vk&&answers[s]?.key===vk){st='Votó';stc='ok'}
+    else if(state.phase==='prenda'&&state.prenda.items[s]!=null){st='Prenda';stc='ok'}
     else if(state.phase==='final'&&state.final.seat===s)st='En la final';
     return `<button class="door ${s} ${s===me?'me':''} ${out?'out':''}" data-seat="${s}" ${inGame?'disabled':''} aria-label="${esc(p.name)}"><div class="hole"><div class="flap l"></div><div class="flap r"></div><div class="avatar">${esc((p.name||'?').trim().charAt(0).toUpperCase())}</div></div><div class="nm">${esc(p.name)}</div><div class="huellas">${h}</div>${inGame?`<div class="pozo">${money(p.pozo)}</div>`:''}<div class="st ${stc}">${st}</div></button>`;
   }).join('');
-  // animación de caída
   if(inGame){SEATS.forEach(s=>{const p=state.players[s];if(!p)return;
     if(prevAlive[s]===true&&!p.alive){const el=document.querySelector(`.door[data-seat="${s}"]`);if(el){el.classList.remove('out');el.classList.add('falling');requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('out')));}}
   });prevAlive=Object.fromEntries(SEATS.map(s=>[s,state.players[s]?.alive]))}else prevAlive={};
@@ -476,8 +692,9 @@ $('#doors').addEventListener('click',e=>{const d=e.target.closest('.door');if(!d
 
 /* ===================== Lobby ===================== */
 let lobbyLives=Number(lsGet('tramp_lives'))||3;
+let lobbyMode=lsGet('tramp_mode')==='picante'?'picante':'clasico';
 async function onSeatTap(s){
-  if(readOnly)return toast('Solo podés mirar. Pedí acceso de Editor para jugar.');
+  if(readOnly)return toast('Solo podés mirar.');
   const cur=seats[s];
   if(cur?.bot){await store.doc('seats/'+s).set({uid:null});return}
   if(cur?.uid===uid){await store.doc('seats/'+s).set({uid:null});return}
@@ -509,26 +726,33 @@ function buildLobby(){
     <h2>Elegí tu trampilla</h2>
     <label class="f" for="nameIn">Tu nombre<input id="nameIn" maxlength="14" autocomplete="nickname" value="${esc(name)}" placeholder="Ej: Damián"></label>
     <p class="note" id="seatHint">Escribí tu nombre y tocá un círculo libre de arriba.</p>
+    <div class="row"><span class="note" style="flex:1">Modo de juego</span>
+      <div class="seg" role="group" aria-label="Modo" id="modeSeg"><button type="button" data-m="clasico" aria-pressed="${lobbyMode==='clasico'}">Clásico</button><button type="button" data-m="picante" class="spicy" aria-pressed="${lobbyMode==='picante'}">Picante +18</button></div></div>
+    <p class="note" id="modeNote"></p>
     <div class="row"><span class="note" style="flex:1">Huellas (vidas) por jugador</span>
-      <div class="seg" role="group" aria-label="Huellas">${[2,3,4].map(n=>`<button type="button" data-l="${n}" aria-pressed="${n===lobbyLives}">${n}</button>`).join('')}</div></div>
+      <div class="seg" role="group" aria-label="Huellas" id="livesSeg">${[2,3,4].map(n=>`<button type="button" data-l="${n}" aria-pressed="${n===lobbyLives}">${n}</button>`).join('')}</div></div>
     <div class="row"><button class="btn ghost" id="botBtn">Agregar bot</button><button class="btn big" id="startBtn">¡Que empiece!</button></div>
     <details><summary>¿Cómo se juega?</summary><ul>
-      <li>Todos responden <b>la misma pregunta al mismo tiempo</b>, cada uno en su celu. Tenés 25 segundos y <b>2 intentos</b>.</li>
-      <li>Hay tres juegos que se van turnando: <b>Duelo clásico</b> (las letras de la respuesta van apareciendo), <b>Revoltijo</b> (armás la palabra con letras mezcladas) y <b>Una y una</b> (pistas que van saliendo).</li>
-      <li>Si le errás o no llegás, <b>perdés una huella</b>. Si todos aciertan, la pierde <b>el más lento</b>.</li>
-      <li>Sin huellas, <b>se abre la trampilla y caés</b>.</li>
-      <li>Cada acierto suma plata al pozo: más rápido, más plata.</li>
-      <li>El último en pie va a <b>la final: 10 preguntas en 2 minutos</b>. Se asegura la mitad del pozo, cada acierto suma 15% y con las 10 lo duplica.</li>
+      <li>Todos juegan al mismo tiempo, cada uno en su celu. Los juegos se van turnando.</li>
+      <li><b>Duelo clásico, Revoltijo y Una y una</b>: preguntas de cultura general. Si le errás o no llegás, <b>perdés una huella</b>. Si todos aciertan, la pierde el más lento.</li>
+      <li><b>Excusas para zafar</b>: aparece un compromiso familiar, cada uno escribe su excusa y después se vota la mejor. La menos votada pierde una huella.</li>
+      <li class="spicyli"><b>La incómoda</b> (picante): a uno le toca una pregunta íntima y responde en secreto. Los demás apuestan qué contestó. Si se niega, pierde una huella.</li>
+      <li class="spicyli"><b>Dibujá y adiviná</b> (picante): uno dibuja una palabra subida de tono en su celu y los demás la ven en vivo y escriben. Si nadie la saca, el que dibujó pierde una huella.</li>
+      <li class="spicyli"><b>Prendas</b> (picante): el que va a perder una huella puede salvarse haciendo una prenda subida de tono, hasta 2 veces por partida. Los demás votan si la cumplió. Nadie está obligado: siempre se puede elegir perder la huella.</li>
+      <li>Sin huellas, <b>se abre la trampilla y caés</b>. El último en pie va a <b>la final: 10 preguntas en 2 minutos</b> para duplicar el pozo.</li>
     </ul></details>
     <p class="note">Inspirado en los programas de preguntas con trampillas de la tele.</p>
   </div>`;
   $('#nameIn').addEventListener('change',e=>{const v=e.target.value.trim();lsSet('tramp_name',v);const s=mySeat();if(s&&v)store.doc('seats/'+s).set({uid,name:v,bot:false})});
-  document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{lobbyLives=+b.dataset.l;lsSet('tramp_lives',lobbyLives);document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  document.querySelectorAll('#livesSeg button').forEach(b=>b.onclick=()=>{lobbyLives=+b.dataset.l;lsSet('tramp_lives',lobbyLives);document.querySelectorAll('#livesSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  document.querySelectorAll('#modeSeg button').forEach(b=>b.onclick=()=>{lobbyMode=b.dataset.m;lsSet('tramp_mode',lobbyMode);document.querySelectorAll('#modeSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b));setModeNote()});
+  setModeNote();
   $('#botBtn').onclick=addBot;
   if($('#copyBtn'))$('#copyBtn').onclick=async()=>{try{await navigator.clipboard.writeText(roomLink());toast('Link copiado. Mandalo por WhatsApp.')}catch{const r=document.createRange();r.selectNodeContents($('#roomLink'));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast('Copialo a mano.')}};
-  $('#startBtn').onclick=()=>{if(!mySeat())return toast('Sentate en una trampilla para arrancar.');keepAwake();sfx('start');startGame(lobbyLives)};
+  $('#startBtn').onclick=()=>{if(!mySeat())return toast('Sentate en una trampilla para arrancar.');keepAwake();sfx('start');startGame(lobbyLives,lobbyMode)};
   updateLobby();
 }
+function setModeNote(){const n=$('#modeNote');if(n)n.textContent=lobbyMode==='picante'?'Solo para adultos: preguntas íntimas, dibujos subidos de tono y prendas. Ideal para parejas y amigos de confianza.':'Preguntas de cultura general y excusas para zafar. Apto para toda la familia.'}
 function updateLobby(){
   const n=SEATS.filter(s=>seats[s]?.uid).length;const me=mySeat();
   if($('#connCount'))$('#connCount').textContent=`Conectados: ${conns.size+1} celular${conns.size?'es':''}.`;
@@ -537,40 +761,56 @@ function updateLobby(){
   $('#seatHint').textContent=me?(n<2?'Esperando a que se sienten los demás (o agregá un bot).':`Hay ${n} jugadores. Cualquiera sentado puede arrancar.`):'Escribí tu nombre y tocá un círculo libre de arriba.';
 }
 
-/* ===================== Ronda ===================== */
+/* ===================== Ronda: base ===================== */
 let R=null;
+function roundHead(type,extraHelp){
+  const c=`var(--${'s'+(1+(state.roundN-1)%4)})`;
+  return `<div class="card ${SPICY.includes(type)?'spicycard':''}" id="rcard" style="--c:${c}"><div class="gametag">${TYPE_NAME[type]}</div><p class="help">${extraHelp||TYPE_HELP[type]}</p><div class="timer" id="timer"><i></i></div>`;
+}
 function buildRound(){
-  const st=state,key=roundKey(st),q=getQ(st.type,st.qid),me=myPlaySeat();
-  const playing=!!me&&st.players[me].alive&&!readOnly;
-  const prev=answers[me];const already=playing&&prev?.key===key;
-  R={key,type:st.type,q,start:performance.now(),tries:TRIES,done:already||!playing,playing,built:[],lastSec:null,
-    order:shuffle([...q.answer].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(key))};
-  if(st.type==='revoltillo'){let t=shuffle([...q.answer],rng(key+'t'));if(t.join('')===q.answer)t.reverse();R.tiles=t;R.used=t.map(()=>false)}
-  const c=`var(--${'s'+(1+(st.roundN-1)%4)})`;
-  $('#main').innerHTML=`<div class="card" id="rcard" style="--c:${c}">
-    <div class="gametag">${TYPE_NAME[st.type]}</div>
-    <p class="help">${TYPE_HELP[st.type]}</p>
-    <div class="timer" id="timer"><i></i></div>
+  const t=state.type;
+  if(TRIVIA.includes(t))return buildTrivia();
+  if(t==='excusas')return buildExcusas();
+  if(t==='incomoda')return buildIncomoda();
+  if(t==='dibujo')return buildDibujo();
+}
+function baseR(extra){
+  const key=roundKey(state),me=myPlaySeat();
+  const playing=!!me&&state.players[me].alive&&!readOnly;
+  R={key,type:state.type,T:TIMES[state.type],start:performance.now(),done:!playing,playing,me,lastSec:null,...extra};
+  return R;
+}
+function setMsg(id,cls,txt){const m=$(id);if(m){m.className='msg '+cls;m.textContent=txt}}
+function shakeCard(){const card=$('#rcard');if(!card)return;card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake')}
+
+/* ----- Trivia (clásico, revoltijo, una y una) ----- */
+function buildTrivia(){
+  const st=state,q=getQ(st.type,st.qid);baseR({q,tries:TRIES,built:[]});
+  const prev=R.playing?ansFor(R.me,R.key):null;if(prev)R.done=true;
+  R.order=shuffle([...q.answer].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(R.key));
+  if(st.type==='revoltillo'){let t=shuffle([...q.answer],rng(R.key+'t'));if(t.join('')===q.answer)t.reverse();R.tiles=t;R.used=t.map(()=>false)}
+  const canPlay=R.playing&&!prev;
+  $('#main').innerHTML=roundHead(st.type)+`
     ${st.type==='pistas'?`<ol class="clues" id="clues"></ol>`:`<p class="question">${esc(q.text)}</p>`}
     <div class="slots ${q.answer.length>11?'dense':''}" id="slots"></div>
-    ${playing&&!already?(st.type==='revoltillo'?`<div class="tiles" id="tiles">${R.tiles.map((ch,i)=>`<button class="tile" data-i="${i}">${esc(ch)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="delBtn">Borrar</button></div>`
+    ${canPlay?(st.type==='revoltillo'?`<div class="tiles" id="tiles">${R.tiles.map((ch,i)=>`<button class="tile" data-i="${i}">${esc(ch)}</button>`).join('')}</div><div class="row"><button class="btn ghost" id="delBtn">Borrar</button></div>`
       :`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="Tu respuesta" aria-label="Tu respuesta"><button class="btn">Dale</button></form>`):''}
-    <div class="msg" id="rmsg">${!playing?(me?'Estás abajo de la trampilla: mirás la ronda.':'Estás mirando la partida.'):already?(prev.ok?'¡Ya respondiste bien!':'Ya respondiste.'):`Te quedan ${TRIES} intentos`}</div>
-  </div>`;
+    <div class="msg" id="rmsg">${!R.playing?(R.me?'Estás abajo de la trampilla: mirás la ronda.':'Estás mirando la partida.'):prev?(prev.ok?'¡Ya respondiste bien!':'Ya respondiste.'):`Te quedan ${TRIES} intentos`}</div></div>`;
   if($('#ansForm')){$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';tryAnswer(v)};setTimeout(()=>$('#ansIn')?.focus(),50)}
   if($('#tiles')){$('#tiles').onclick=e=>{const b=e.target.closest('.tile');if(!b||R.done)return;const i=+b.dataset.i;if(R.used[i])return;R.used[i]=true;b.disabled=true;R.built.push(i);sfx('tick');drawSlots();
-      if(R.built.length===R.tiles.length){const w=R.built.map(j=>R.tiles[j]).join('');setTimeout(()=>{tryAnswer(w,true)},150)}};
+      if(R.built.length===R.tiles.length){const w=R.built.map(j=>R.tiles[j]).join('');setTimeout(()=>tryAnswer(w,true),150)}};
     $('#delBtn').onclick=()=>{if(R.done)return;const i=R.built.pop();if(i==null)return;R.used[i]=false;$(`.tile[data-i="${i}"]`).disabled=false;drawSlots()}}
-  if(already&&prev.ok)R.won=true;
+  if(prev&&prev.ok)R.won=true;
   drawSlots();
 }
 function drawSlots(){
-  if(!R)return;const el=$('#slots');if(!el)return;
+  if(!R||!R.q)return;const el=$('#slots');if(!el)return;
   const ans=[...R.q.answer.toUpperCase()],elapsed=performance.now()-R.start;
   let shown=new Set();
   if(R.won)shown=new Set(ans.map((_,i)=>i));
   else if(R.type==='clasico'){const n=R.order.length,base=Math.max(1,Math.ceil(n*.25)),max=Math.max(base,Math.floor(n*.7));R.order.slice(0,Math.min(max,base+Math.floor(elapsed/3000))).forEach(i=>shown.add(i))}
-  else if(R.type==='pistas'&&elapsed>15000)shown.add(R.order.length?[...R.q.answer].findIndex(c=>c!==' '):0);
+  else if(R.type==='pistas'&&elapsed>15000)shown.add(ans.findIndex(c=>c!==' '));
+  else if(R.type==='dibujo'){const first=ans.findIndex(c=>c!==' ');if(elapsed>35000)shown.add(first);if(elapsed>55000&&R.order[1]!=null)shown.add(R.order[1])}
   let li=0;const words=[];let cur=[];
   ans.forEach((ch,i)=>{if(ch===' '){words.push(cur);cur=[];return}
     let txt='',cls='slot';
@@ -584,38 +824,161 @@ function drawSlots(){
 function drawClues(){
   const el=$('#clues');if(!el||!R)return;const n=Math.min(4,Math.floor((performance.now()-R.start)/5000)+1);
   if(el.children.length&&el.dataset.n==n)return;el.dataset.n=n;
-  el.innerHTML=R.q.clues.map((c,i)=>i<n?`<li><b>${i+1}</b>${esc(c)}</li>`:`<li class="wait"><b>${i+1}</b>Pista en ${Math.ceil(((i)*5000-(performance.now()-R.start))/1000)}s</li>`).join('');
+  el.innerHTML=R.q.clues.map((c,i)=>i<n?`<li><b>${i+1}</b>${esc(c)}</li>`:`<li class="wait"><b>${i+1}</b>Pista en ${Math.max(1,Math.ceil((i*5000-(performance.now()-R.start))/1000))}s</li>`).join('');
 }
 function tryAnswer(v,isTiles){
   if(!R||R.done||!v.trim())return;
-  if(matches(v,R.q.answer,R.q.alts)){finishRound(true);return}
-  R.tries--;sfx('bad');const card=$('#rcard');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
+  if(matches(v,R.q.answer,R.q.alts)){finishTrivia(true);return}
+  R.tries--;sfx('bad');shakeCard();
   if(isTiles){R.built=[];R.used=R.used.map(()=>false);document.querySelectorAll('.tile').forEach(b=>b.disabled=false);drawSlots()}
-  if(R.tries<=0){finishRound(false);return}
-  $('#rmsg').className='msg bad';$('#rmsg').textContent=`¡No! Te queda ${R.tries} intento`;
+  if(R.tries<=0){finishTrivia(false);return}
+  setMsg('#rmsg','bad',`¡No! Te queda ${R.tries} intento`);
 }
-function finishRound(ok){
-  R.done=true;const ms=Math.min(T,Math.round(performance.now()-R.start));
-  writeAnswer(myPlaySeat(),{key:R.key,ok,ms});
+function finishTrivia(ok){
+  R.done=true;const ms=Math.min(R.T,Math.round(performance.now()-R.start));
+  writeAnswer(R.me,{key:R.key,ok,ms});
   if(ok){R.won=true;sfx('ok');drawSlots()}
-  const m=$('#rmsg');m.className='msg '+(ok?'ok':'bad');m.textContent=ok?`¡Correcto! ${(ms/1000).toFixed(1)} s. Esperá a los demás…`:'Te quedaste sin intentos. Rezale al piso…';
+  setMsg('#rmsg',ok?'ok':'bad',ok?`¡Correcto! ${(ms/1000).toFixed(1)} s. Esperá a los demás…`:'Te quedaste sin intentos. Rezale al piso…');
   $('#ansForm')?.remove();$('#tiles')?.remove();$('#delBtn')?.parentElement.remove();
+}
+
+/* ----- Excusas para zafar ----- */
+function buildExcusas(){
+  baseR({});const prev=R.playing?ansFor(R.me,R.key):null;if(prev)R.done=true;
+  $('#main').innerHTML=roundHead('excusas')+`
+    <p class="question">${esc(EXCUSAS[state.qid])}</p>
+    ${R.playing&&!prev?`<label class="f" for="excIn">Tu excusa<textarea id="excIn" maxlength="160" rows="3" placeholder="Ej: justo ese día me operan de la vesícula…"></textarea></label>
+      <button class="btn" id="excBtn">Mandar excusa</button>`:''}
+    <div class="msg" id="rmsg">${!R.playing?'Mirás cómo zafan los demás.':prev?'Excusa enviada. Esperá a los demás…':''}</div></div>`;
+  if($('#excBtn'))$('#excBtn').onclick=()=>sendExcusa();
+}
+function sendExcusa(){
+  if(!R||R.done)return;const v=($('#excIn')?.value||'').trim();
+  if(!v&&performance.now()-R.start<R.T)return toast('Escribí algo, aunque sea malo.');
+  R.done=true;writeAnswer(R.me,{key:R.key,text:v.slice(0,160)});sfx('ok');
+  $('#excIn')?.parentElement.remove();$('#excBtn')?.remove();setMsg('#rmsg','ok','Excusa enviada. Esperá a los demás…');
+}
+function buildVote(){
+  const v=state.vote,me=myPlaySeat();R={vkey:v.key,start:performance.now(),T:TIMES.vote};
+  const mine=me?ansFor(me,v.key)?.vote:null;
+  $('#main').innerHTML=`<div class="card" id="rcard"><div class="gametag">Excusas para zafar · Votación</div>
+    <p class="help">${esc(EXCUSAS[state.qid])}</p><div class="timer" id="timer"><i></i></div>
+    <p class="question">¿Cuál es la mejor excusa?</p>
+    <div class="opts" id="vopts">${v.list.map((e,i)=>`<button class="excuse" data-s="${e.seat}" ${!me||e.seat===me||readOnly?'disabled':''} aria-pressed="${mine===e.seat}"><b>${'ABCD'[i]}</b><span>${e.text?esc(e.text):'<i>No se le ocurrió nada.</i>'}</span>${e.seat===me?'<em>La tuya</em>':''}</button>`).join('')}</div>
+    <div class="msg" id="rmsg">${!me?'Mirás la votación.':mine?'Voto enviado. Podés cambiarlo.':'Tocá la que más te convenza (no podés votarte).'}</div></div>`;
+  $('#vopts').onclick=e=>{const b=e.target.closest('.excuse');if(!b||b.disabled||!me)return;
+    writeAnswer(me,{key:v.key,vote:b.dataset.s});sfx('tick');document.querySelectorAll('.excuse').forEach(x=>x.setAttribute('aria-pressed',x===b));setMsg('#rmsg','ok','Voto enviado. Podés cambiarlo.')};
+}
+
+/* ----- La incómoda ----- */
+function buildIncomoda(){
+  baseR({});const q=INCOMODA[state.qid],t=state.actor,tn=state.players[t].name;
+  const isT=R.playing&&R.me===t;const prev=R.playing?ansFor(R.me,R.key):null;if(prev)R.done=true;
+  $('#main').innerHTML=roundHead('incomoda',isT?'Respondé la verdad. Nadie ve tu respuesta hasta el final.':`Le toca a ${tn}. Apostá qué va a contestar.`)+`
+    <p class="question">${isT?'':`<span class="for">Para ${esc(tn)}:</span> `}${esc(q[0])}</p>
+    ${R.playing&&!prev?`<div class="row bigopts"><button class="btn" data-o="0">${esc(q[1])}</button><button class="btn" data-o="1">${esc(q[2])}</button></div>
+      ${isT?`<button class="btn ghost" data-o="no">Me niego a responder (pierdo una huella)</button>`:''}`:''}
+    <div class="msg" id="rmsg">${!R.playing?`Mirás qué responde ${esc(tn)}.`:prev?'Listo. Esperá a los demás…':''}</div></div>`;
+  $('#rcard').onclick=e=>{const b=e.target.closest('[data-o]');if(!b||R.done)return;const o=b.dataset.o;R.done=true;
+    writeAnswer(R.me,isT?{key:R.key,pick:o==='no'?'no':+o}:{key:R.key,guess:+o});sfx(o==='no'?'bad':'ok');
+    document.querySelectorAll('[data-o]').forEach(x=>x.remove());setMsg('#rmsg','ok',isT?(o==='no'?'Te negaste. El piso toma nota…':'Respuesta guardada. Preparate para explicarla.'):'Apuesta hecha. Esperá…')};
+}
+
+/* ----- Dibujá y adiviná ----- */
+let drawDoc=null;
+function buildDibujo(){
+  const word=DIBUJO[state.qid],d=state.actor,dn=state.players[d].name;
+  baseR({q:{answer:word,alts:[]},drawer:false});
+  R.drawer=R.playing&&R.me===d;R.order=shuffle([...word].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(R.key));
+  const prev=R.playing&&!R.drawer?ansFor(R.me,R.key):null;if(prev?.ok){R.done=true;R.won=true}
+  if(R.drawer)R.done=true;
+  R.strokes=[];R.dirty=false;R.lastSend=0;
+  $('#main').innerHTML=roundHead('dibujo',R.drawer?'Dibujá esto sin letras ni números. Los demás lo ven en vivo.':`${esc(dn)} está dibujando. Escribí lo que te parece.`)+`
+    ${R.drawer?`<div class="secret"><span>Tu palabra</span><b>${esc(word.toUpperCase())}</b></div>`:`<div class="slots" id="slots"></div>`}
+    <canvas id="cv" class="canvas ${R.drawer?'drawing':''}" aria-label="Pizarra de dibujo"></canvas>
+    ${R.drawer?`<div class="row"><button class="btn ghost" id="clrBtn">Borrar todo</button><button class="btn ghost" id="undoBtn">Deshacer</button></div>`:''}
+    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué es?" aria-label="Tu respuesta"><button class="btn">Dale</button></form>`:''}
+    <div class="msg ${R.won?'ok':''}" id="rmsg">${!R.playing?'Mirás el dibujo.':R.won?'¡La adivinaste! Esperá a los demás…':''}</div></div>`;
+  setupCanvas();
+  if($('#ansForm'))$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';guessDraw(v)};
+  if(R.drawer){$('#clrBtn').onclick=()=>{R.strokes=[];R.dirty=true;redraw()};$('#undoBtn').onclick=()=>{R.strokes.pop();R.dirty=true;redraw()};R.dirty=true}
+  drawSlots();
+}
+function guessDraw(v){
+  if(!R||R.done||!v.trim())return;
+  if(matches(v,R.q.answer,R.q.alts)){R.done=true;R.won=true;const ms=Math.round(performance.now()-R.start);writeAnswer(R.me,{key:R.key,ok:true,ms});sfx('ok');
+    $('#ansForm')?.remove();setMsg('#rmsg','ok',`¡La adivinaste en ${(ms/1000).toFixed(0)} s!`);drawSlots()}
+  else{sfx('bad');shakeCard();setMsg('#rmsg','bad',`No es "${v.trim()}". Seguí probando.`)}
+}
+const CW=1000,CH=750;
+function setupCanvas(){
+  const cv=$('#cv');if(!cv)return;
+  const fit=()=>{const w=cv.clientWidth;if(!w)return;const dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(w*dpr);cv.height=Math.round(w*CH/CW*dpr);redraw()};
+  fit();window.onresize=fit;
+  if(!R.drawer)return;
+  let cur=null;
+  const pt=e=>{const r=cv.getBoundingClientRect();return[Math.round((e.clientX-r.left)/r.width*CW),Math.round((e.clientY-r.top)/r.height*CH)]};
+  cv.onpointerdown=e=>{if(performance.now()-R.start>R.T)return;cv.setPointerCapture(e.pointerId);cur=pt(e);R.strokes.push(cur);R.dirty=true;redraw()};
+  cv.onpointermove=e=>{if(!cur)return;const [x,y]=pt(e);const lx=cur[cur.length-2],ly=cur[cur.length-1];if(Math.abs(x-lx)+Math.abs(y-ly)<6)return;cur.push(x,y);R.dirty=true;redraw()};
+  cv.onpointerup=cv.onpointercancel=()=>{cur=null};
+}
+function redraw(){
+  const cv=$('#cv');if(!cv||!R)return;const ctx=cv.getContext('2d');
+  const strokes=R.drawer?R.strokes:(drawDoc&&drawDoc.key===R.key?drawDoc.s:[]);
+  const sx=cv.width/CW,sy=cv.height/CH;
+  ctx.fillStyle=CSSV('--canvas');ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle=CSSV('--ink-dark');ctx.lineWidth=7*sx;ctx.lineCap='round';ctx.lineJoin='round';
+  (strokes||[]).forEach(s=>{if(!s||s.length<2)return;ctx.beginPath();ctx.moveTo(s[0]*sx,s[1]*sy);if(s.length===2)ctx.lineTo(s[0]*sx+.1,s[1]*sy);for(let i=2;i<s.length;i+=2)ctx.lineTo(s[i]*sx,s[i+1]*sy);ctx.stroke()});
+}
+function onDraw(d){drawDoc=d;if(R&&R.type==='dibujo'&&!R.drawer)redraw()}
+
+/* ===================== Prendas ===================== */
+let myVotes={};
+function buildPrenda(){
+  R={pkey:state.prenda.key,start:performance.now(),T:TIMES.prenda};myVotes={};
+  const me=myPlaySeat();const prev=me?ansFor(me,R.pkey):null;if(prev?.votes)myVotes={...prev.votes};
+  $('#main').innerHTML=`<div class="card spicycard" id="rcard"><div class="gametag">Prenda o huella</div>
+    <p class="help">El que iba a perder una huella puede salvarse con una prenda (2 rescates por partida). Los demás votan si la cumplió. Nadie está obligado.</p>
+    <div class="timer" id="timer"><i></i></div><div class="res" id="plist"></div></div>`;
+  $('#plist').onclick=onPrendaClick;
+  updatePrenda();
+}
+function myPrendaDoc(){const me=myPlaySeat();const prev=ansFor(me,R.pkey)||{};return{key:R.pkey,choice:prev.choice||null,votes:{...myVotes}}}
+function onPrendaClick(e){
+  const b=e.target.closest('button');if(!b||!R||!R.pkey)return;const me=myPlaySeat();if(!me||readOnly)return;
+  if(b.dataset.choice){const d=myPrendaDoc();d.choice=b.dataset.choice;writeAnswer(me,d);sfx(d.choice==='hago'?'ok':'bad')}
+  if(b.dataset.vote){myVotes[b.dataset.for]=b.dataset.vote==='1';writeAnswer(me,myPrendaDoc());sfx('tick')}
+}
+function updatePrenda(){
+  const el=$('#plist');if(!el||!state.prenda)return;const me=myPlaySeat(),pk=state.prenda.key;
+  el.innerHTML=Object.entries(state.prenda.items).map(([s,idx])=>{
+    const p=state.players[s];const c=ansFor(s,pk)?.choice;
+    let body='';
+    if(s===me&&!c)body=`<div class="row"><button class="btn" data-choice="hago">La hago</button><button class="btn ghost" data-choice="paso">Prefiero perder la huella</button></div>`;
+    else if(!c)body=`<p class="note">${esc(p.name)} está decidiendo…</p>`;
+    else if(c==='paso')body=`<p class="note">Prefirió perder la huella.</p>`;
+    else if(s===me)body=`<p class="note">¡A cumplirla! Los demás votan si vale.</p>`;
+    else if(me&&!readOnly){const v=myVotes[s];body=`<div class="row"><button class="btn ${v===true?'':'ghost'}" data-vote="1" data-for="${s}">¡La cumplió!</button><button class="btn ${v===false?'hot':'ghost'}" data-vote="0" data-for="${s}">No la cumplió</button></div>`}
+    else body=`<p class="note">Está haciendo la prenda…</p>`;
+    const rl=p.rescues??RESCUES;
+    return `<div class="prenda" style="--c:var(--${s})"><b>${esc(p.name)}${s===me?' (vos)':''}${p.bot?' · bot':''} <span class="note">· ${rl===1?'último rescate':rl+' rescates'}</span></b><p>${esc(PRENDAS[idx])}</p>${body}</div>`}).join('');
 }
 
 /* ===================== Resultado de ronda ===================== */
 function buildReveal(){
-  const st=state,r=st.result,q=getQ(st.type,st.qid),me=myPlaySeat();
-  const order=Object.keys(r.res).sort((a,b)=>{const A=r.res[a],B=r.res[b];if(A.ok!==B.ok)return A.ok?-1:1;return(A.ms??1e9)-(B.ms??1e9)});
-  const rows=order.map(s=>{const p=st.players[s],x=r.res[s];const lost=r.lose.includes(s),fell=r.fell.includes(s);
-    const det=x.ok?`${(x.ms/1000).toFixed(1)} s · +${money(r.gains[s])}`:(x.none?'No llegó':'Le erró');
-    const tag=fell?'<span class="tag bad">¡Cayó!</span>':lost?'<span class="tag bad">−1 huella</span>':'<span class="tag ok">Sigue</span>';
-    return `<div class="rline ${fell?'fell':''}" style="--c:var(--${s})"><i class="dot"></i><div class="who"><b>${esc(p.name)}${s===me?' (vos)':''}</b><span>${det}</span></div>${tag}</div>`}).join('');
-  const note=r.note==='slow'?'Todos acertaron: el más lento pierde una huella.':r.note==='saved'?'¡Nadie se cae! Se iban todos juntos, así que se salvaron.':'';
-  const quip=r.fell.length?pick(QUIPS_FALL,r.key):pick(QUIPS_OK,r.key);
-  $('#main').innerHTML=`<div class="card"><div class="gametag">Ronda ${st.roundN} · ${TYPE_NAME[st.type]}</div>
-    <div><p class="note center">La respuesta era</p><div class="answer">${esc(q.answer.toUpperCase())}</div></div>
-    ${note?`<div class="banner">${note}</div>`:''}
-    <div class="res">${rows}</div><p class="quip">${esc(quip)}</p></div>`;
+  const st=state,r=st.result,me=myPlaySeat();
+  const seatsShown=Object.keys(r.rows).sort((a,b)=>(r.gains[b]||0)-(r.gains[a]||0));
+  const rows=seatsShown.map(s=>{const p=st.players[s];const lost=r.lose.includes(s),fell=r.fell.includes(s);const pr=r.prendas?.[s];
+    const det=[r.rows[s],r.gains[s]?`+${money(r.gains[s])}`:''].filter(Boolean).join(' · ');
+    const tag=fell?'<span class="tag bad">¡Cayó!</span>':lost?'<span class="tag bad">−1 huella</span>':pr?.ok?'<span class="tag ok">Salvado por prenda</span>':'<span class="tag ok">Sigue</span>';
+    return `<div class="rline ${fell?'fell':''}" style="--c:var(--${s})"><i class="dot"></i><div class="who"><b>${esc(p.name)}${s===me?' (vos)':''}</b><span>${esc(det)}</span></div>${tag}</div>`}).join('');
+  const notes={slow:'Todos acertaron: el más lento pierde una huella.',saved:'¡Nadie se cae! Se iban todos juntos, así que se salvaron.',least:'La excusa menos votada pierde una huella.'};
+  const quip=r.quip||(r.fell.length?pick(QUIPS_FALL,r.key):pick(QUIPS_OK,r.key));
+  const exc=r.excusas?`<div class="res">${r.excusas.slice().sort((a,b)=>b.votes-a.votes).map(e=>`<div class="excuse static" style="--c:var(--${e.seat})"><b>${e.votes}</b><span>${e.text?esc(e.text):'<i>No se le ocurrió nada.</i>'}</span><em>${esc(st.players[e.seat].name)}</em></div>`).join('')}</div>`:'';
+  $('#main').innerHTML=`<div class="card"><div class="gametag">Ronda ${st.roundN} · ${TYPE_NAME[r.type]}</div>
+    <div><p class="note center">${esc(r.title)}</p><div class="answer">${esc(r.big)}</div>${r.sub?`<p class="note center">${esc(r.sub)}</p>`:''}</div>
+    ${notes[r.note]?`<div class="banner">${notes[r.note]}</div>`:''}
+    ${exc}<div class="res">${rows}</div><p class="quip">${esc(quip)}</p></div>`;
   if(r.fell.length)sfx('fall');
   if(me&&r.fell.includes(me))showFall();
 }
@@ -628,7 +991,7 @@ function showFall(){
 /* ===================== Intro ===================== */
 function buildIntro(){
   const names=SEATS.filter(s=>state.players[s]).map(s=>state.players[s].name);
-  $('#main').innerHTML=`<div class="card center"><div class="gametag">Arranca el programa</div><div class="count" id="cnt">3</div><p>${esc(names.join(' · '))}</p><p class="note">${state.lives} huellas cada uno. El último en pie va a la final.</p></div>`;
+  $('#main').innerHTML=`<div class="card center"><div class="gametag">Arranca el programa</div><div class="count" id="cnt">3</div><p>${esc(names.join(' · '))}</p><p class="note">${state.mode==='picante'?'Modo picante +18. ':''}${state.lives} huellas cada uno. El último en pie va a la final.</p></div>`;
   R={introStart:performance.now()};sfx('start');
 }
 
@@ -698,7 +1061,7 @@ function buildEnd(){
     <div class="res">${rows}</div>
     ${seated?`<div class="row"><button class="btn ghost" id="lobbyBtn">Volver al lobby</button><button class="btn big" id="againBtn">Revancha</button></div>`:''}</div>`;
   sfx('win');
-  if(seated){$('#againBtn').onclick=()=>{sfx('start');startGame(st.lives)};$('#lobbyBtn').onclick=()=>writeState({phase:'lobby',hostUid:uid})}
+  if(seated){$('#againBtn').onclick=()=>{sfx('start');startGame(st.lives,st.mode)};$('#lobbyBtn').onclick=()=>writeState({phase:'lobby',hostUid:uid})}
 }
 
 /* ===================== Render principal ===================== */
@@ -708,42 +1071,46 @@ function onState(){
   if(state){const pk=phaseKey(state);if(!seenAt[pk])seenAt[pk]=performance.now()}
   const ph=!state||state.phase==='lobby'||!state.players?'lobby':state.phase;
   const vk=ph==='lobby'?'lobby':phaseKey(state);
-  if(vk!==viewKey){viewKey=vk;R=null;F=null;
-    ({lobby:buildLobby,intro:buildIntro,round:buildRound,reveal:buildReveal,final:buildFinal,end:buildEnd})[ph]();}
+  if(vk!==viewKey){viewKey=vk;R=null;F=null;window.onresize=null;
+    ({lobby:buildLobby,intro:buildIntro,round:buildRound,vote:buildVote,prenda:buildPrenda,reveal:buildReveal,final:buildFinal,end:buildEnd})[ph]();}
   else if(ph==='lobby')updateLobby();
   $('#roundChip').textContent=ph==='lobby'?'Lobby':ph==='intro'?'Arranca':ph==='final'?'Final':ph==='end'?'Fin':`Ronda ${state.roundN}`;
   renderStage();
 }
 function onSeats(){if(viewKey==='lobby'){updateLobby()}renderStage()}
-function onAnswers(){renderStage();updateFinal()}
+function onAnswers(){renderStage();updateFinal();if(state&&state.phase==='prenda')updatePrenda()}
 
 /* ===================== Bucle de animación ===================== */
 function tick(){
   requestAnimationFrame(tick);
-  if(R&&R.introStart){const c=$('#cnt');if(c){const n=Math.max(1,3-Math.floor((performance.now()-R.introStart)/1200));if(c.textContent!=n){c.textContent=n;sfx('tick')}}}
-  if(R&&R.key){
-    const el=performance.now()-R.start,left=Math.max(0,1-el/T);
+  const now=performance.now();
+  if(R&&R.introStart){const c=$('#cnt');if(c){const n=Math.max(1,3-Math.floor((now-R.introStart)/1200));if(c.textContent!=n){c.textContent=n;sfx('tick')}}}
+  if(R&&R.T&&R.start){
+    const el=now-R.start,left=Math.max(0,1-el/R.T);
     const t=$('#timer');if(t){t.firstChild.style.transform=`scaleX(${left})`;t.classList.toggle('low',left<.2)}
-    if(!R.won)drawSlots();if(R.type==='pistas')drawClues();
-    const sec=Math.ceil((T-el)/1000);if(!R.done&&sec<=5&&sec>0&&sec!==R.lastSec){R.lastSec=sec;sfx('tick')}
-    if(!R.done&&el>=T)finishRound(false);
   }
-  if(F){const el=performance.now()-F.start,rem=Math.max(0,FINAL_MS-el);
+  if(R&&R.key){
+    const el=now-R.start;
+    if(R.q&&!R.won&&R.type!=='excusas')drawSlots();if(R.type==='pistas')drawClues();
+    const sec=Math.ceil((R.T-el)/1000);if(!R.done&&sec<=5&&sec>0&&sec!==R.lastSec){R.lastSec=sec;sfx('tick')}
+    if(!R.done&&el>=R.T){if(TRIVIA.includes(R.type))finishTrivia(false);else if(R.type==='excusas')sendExcusa();else R.done=true}
+    if(R.drawer&&R.dirty&&now-R.lastSend>300){R.dirty=false;R.lastSend=now;store.doc('draw/live').set({key:R.key,s:R.strokes}).catch(()=>{R.dirty=true})}
+  }
+  if(F){const el=now-F.start,rem=Math.max(0,FINAL_MS-el);
     const ck=$('#fClock');if(ck){const s=Math.ceil(rem/1000);ck.textContent=`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
     const t=$('#ftimer');if(t){t.firstChild.style.transform=`scaleX(${rem/FINAL_MS})`;t.classList.toggle('low',rem<20000)}
     if(F.isMe&&!F.done&&rem<=0)finishFinal();
   }
-  // Rescate si el anfitrión se fue
   const hb=$('#hostBar');
-  if(state&&!readOnly&&mySeat()&&!isHost()&&['intro','round','reveal','final'].includes(state.phase)){
-    const lim=state.phase==='final'?FINAL_MS+20000:T+15000;hb.hidden=Date.now()-lastChange<lim}else hb.hidden=true;
+  if(state&&!readOnly&&mySeat()&&!isHost()&&['intro','round','vote','prenda','reveal','final'].includes(state.phase)){
+    const lim=state.phase==='final'?FINAL_MS+20000:(TIMES[state.phase==='round'?state.type:state.phase]||25000)+20000;hb.hidden=Date.now()-lastChange<lim}else hb.hidden=true;
 }
 $('#takeoverBtn').onclick=()=>{if(!state)return;const st=clone(state);st.hostUid=uid;writeState(st);toast('Ahora manejás vos el juego.')};
 
 /* ===================== Red (sin servidor: un celu arma la sala) ===================== */
 const PREFIX='trampilla-daci-v1-';
 const PEER_OPTS={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
-const PATH_OK=/^(game\/state|seats\/s[1-4]|answers\/s[1-4])$/;
+const PATH_OK=/^(game\/state|seats\/s[1-4]|answers\/s[1-4]|draw\/live)$/;
 const roomLink=()=>location.origin+location.pathname+'?sala='+roomCode;
 function genCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i++)c+=A[Math.floor(Math.random()*A.length)];return c}
 function netBar(t){const b=$('#netBar');b.hidden=!t;b.textContent=t||''}
@@ -810,6 +1177,7 @@ function enterGame(){
   store.doc('game/state').onSnapshot(s=>{const d=s.exists?s.data():null;if(d&&state&&isHost()&&d.hostUid===uid)return;state=d?clone(d):null;lastChange=Date.now();onState()});
   store.collection('seats').onSnapshot(q=>{seats={};q.docs.forEach(d=>{if(d.exists)seats[d.id]=d.data()});onSeats()});
   store.collection('answers').onSnapshot(q=>{answers={};q.docs.forEach(d=>{if(d.exists)answers[d.id]=d.data()});onAnswers()});
+  store.doc('draw/live').onSnapshot(d=>onDraw(d.exists?d.data():null));
   onState();
 }
 window.addEventListener('beforeunload',e=>{if(netRole==='host'&&conns.size){e.preventDefault();e.returnValue=''}});
