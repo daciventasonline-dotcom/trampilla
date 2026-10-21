@@ -168,6 +168,10 @@ textarea:focus{border-color:var(--ice);outline:none}
 .canvas.drawing{box-shadow:0 0 0 3px var(--spicy)}
 .prenda{display:flex;flex-direction:column;gap:8px;background:var(--bg2);border:1px solid var(--line);border-left:5px solid var(--c);border-radius:12px;padding:12px}
 .prenda p{margin:0;font-size:17px;font-weight:700}
+.hum{display:flex;justify-content:center;align-items:flex-end;gap:6px;height:44px}
+.hum i{width:8px;border-radius:4px;background:var(--ice);animation:hum 1s ease-in-out infinite}
+.hum i:nth-child(2){animation-delay:.15s}.hum i:nth-child(3){animation-delay:.3s}.hum i:nth-child(4){animation-delay:.45s}.hum i:nth-child(5){animation-delay:.6s}
+@keyframes hum{0%,100%{height:10px}50%{height:40px}}
 </style>
 </head>
 <body>
@@ -442,14 +446,58 @@ const PRENDAS=[
 // Palabras para dibujar y adivinar
 const DIBUJO=["Esposas","Jacuzzi","Lencería","Kamasutra","Despedida de soltero","Preservativo","Strip póker","Beso francés","Telo","Látigo","Tanga","Chupón","Luna de miel","Sex shop","Striptease","Desnudo","Ducha de a dos","Vibrador","Ligas","Cucharita","Antifaz","Pole dance","Corpiño","Mañanero","Cama redonda","Espejo en el techo","Crema batida","Masaje con aceite","Bata de seda","Disfraz de enfermera","Nudista","Baile del caño","Cama de agua","Pétalos de rosa","Boxer","Portaligas"];
 
+// Tarareala: [título, intérprete, alternativas]
+const CANCIONES=[
+["De música ligera","Soda Stereo",["musica ligera"]],
+["Persiana americana","Soda Stereo"],
+["Mil horas","Los Abuelos de la Nada"],
+["Seguir viviendo sin tu amor","Luis Alberto Spinetta",["sin tu amor"]],
+["Rasguña las piedras","Sui Generis"],
+["Demoliendo hoteles","Charly García"],
+["Tren al sur","Los Prisioneros"],
+["Lamento boliviano","Enanitos Verdes"],
+["Matador","Los Fabulosos Cadillacs"],
+["Mi Buenos Aires querido","Carlos Gardel"],
+["Por una cabeza","Carlos Gardel"],
+["La cumparsita","Tango clásico",["cumparsita"]],
+["Muchachos","La Mosca",["muchachos ahora nos volvimos a ilusionar"]],
+["Manuelita","María Elena Walsh"],
+["Como la cigarra","María Elena Walsh"],
+["Sobreviviendo","Víctor Heredia"],
+["Una cerveza","Ráfaga"],
+["La bomba","Azul Azul"],
+["Fanático","Lali"],
+["Despacito","Luis Fonsi"],
+["La bamba","Ritchie Valens"],
+["Bailando","Enrique Iglesias"],
+["Gasolina","Daddy Yankee"],
+["Macarena","Los del Río",["la macarena"]],
+["La tortura","Shakira"],
+["Tusa","Karol G"],
+["Livin' la vida loca","Ricky Martin",["la vida loca","livin la vida loca"]],
+["Thriller","Michael Jackson"],
+["Billie Jean","Michael Jackson"],
+["Bohemian Rhapsody","Queen"],
+["We Will Rock You","Queen"],
+["Imagine","John Lennon"],
+["Let It Be","The Beatles"],
+["Yellow Submarine","The Beatles"],
+["Smells Like Teen Spirit","Nirvana"],
+["Ojalá","Silvio Rodríguez"],
+["Cielito lindo","Canción popular mexicana"],
+["Feliz cumpleaños","Clásico de cumpleaños",["cumpleanos feliz","happy birthday"]],
+["Himno Nacional Argentino","Vicente López y Planes / Blas Parera",["himno nacional","himno argentino","himno"]],
+["Arroz con leche","Canción infantil"],
+];
+
 /* ===================== Utilidades ===================== */
 const RESCUES=2, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=20, TRIES=2;
-const TIMES={clasico:25000,revoltillo:25000,pistas:25000,excusas:60000,incomoda:30000,dibujo:75000,vote:30000,prenda:90000};
+const TIMES={tararea:60000,clasico:25000,revoltillo:25000,pistas:25000,excusas:60000,incomoda:30000,dibujo:75000,vote:30000,prenda:90000};
 const SEATS=['s1','s2','s3','s4'];
-const TRIVIA=['clasico','revoltillo','pistas'],SPICY=['incomoda','dibujo'];
-const CYCLE={clasico:['clasico','revoltillo','excusas','pistas'],picante:['incomoda','clasico','dibujo','excusas','revoltillo','incomoda','pistas','dibujo']};
-const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una',excusas:'Excusas para zafar',incomoda:'La incómoda',dibujo:'Dibujá y adiviná'};
-const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.'};
+const TRIVIA=['clasico','revoltillo','pistas'],SPICY=['incomoda','dibujo'],ACTED=['dibujo','tararea'];
+const CYCLE={clasico:['clasico','revoltillo','tararea','excusas','pistas'],picante:['incomoda','clasico','dibujo','tararea','excusas','revoltillo','incomoda','pistas','dibujo']};
+const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una',excusas:'Excusas para zafar',tararea:'Tarareala',incomoda:'La incómoda',dibujo:'Dibujá y adiviná'};
+const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.',tararea:''};
 const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#fff';
 const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa'];
 const QUIPS_FALL=['¡Se abrió el piso!','Mandale un saludo a la familia… desde abajo.','Nadie se salva.','Ahora caíste vos.','Chau, nos vemos en la próxima.'];
@@ -541,7 +589,7 @@ function startGame(lives,mode){
   if(Object.keys(players).length<2)return toast('Hacen falta al menos 2 jugadores sentados.');
   const gameId=Math.random().toString(36).slice(2,8);const r=rng(gameId);
   const deck={clasico:shuffle(range(CLASICO.length),r),revoltillo:shuffle(range(REVOLT.length),r),pistas:shuffle(range(PISTAS.length),r),
-    excusas:shuffle(range(EXCUSAS.length),r),incomoda:shuffle(range(INCOMODA.length),r),dibujo:shuffle(range(DIBUJO.length),r),
+    excusas:shuffle(range(EXCUSAS.length),r),tararea:shuffle(range(CANCIONES.length),r),incomoda:shuffle(range(INCOMODA.length),r),dibujo:shuffle(range(DIBUJO.length),r),
     prenda:shuffle(range(PRENDAS.length),r),final:shuffle(range(FINALQ.length),r).slice(0,10)};
   writeState({phase:'intro',mode,hostUid:uid,gameId,lives,players,deck,counters:{},turn:Math.floor(r()*4),roundN:0,fallOrder:[],result:null,final:null,champion:null});
 }
@@ -549,7 +597,7 @@ function nextRound(){
   const st=clone(state);st.roundN++;st.turn=(st.turn||0)+1;
   const cyc=CYCLE[st.mode]||CYCLE.clasico;let type=cyc[(st.roundN-1)%cyc.length];
   const alive=aliveSeats(st);st.actor=null;
-  if(type==='dibujo'){const humans=alive.filter(s=>!st.players[s].bot);if(!humans.length)type='clasico';else st.actor=humans[st.turn%humans.length]}
+  if(ACTED.includes(type)){const humans=alive.filter(s=>!st.players[s].bot);if(!humans.length)type='clasico';else st.actor=humans[st.turn%humans.length]}
   if(type==='incomoda')st.actor=alive[st.turn%alive.length];
   st.counters=st.counters||{};const n=st.counters[type]||0;st.counters[type]=n+1;
   st.type=type;st.qid=st.deck[type][n%st.deck[type].length];
@@ -563,7 +611,7 @@ const ansFor=(s,k)=>{const a=answers[s];return a&&a.key===k?a:null};
 
 function roundComplete(){
   const k=roundKey(state),alive=aliveSeats();
-  if(state.type==='dibujo')return alive.filter(s=>s!==state.actor).every(s=>ansFor(s,k)?.ok);
+  if(ACTED.includes(state.type))return alive.filter(s=>s!==state.actor).every(s=>ansFor(s,k)?.ok);
   return alive.every(s=>ansFor(s,k));
 }
 function resolveRound(){
@@ -590,14 +638,15 @@ function resolveRound(){
     st.phase='vote';
     st.vote={key:key+':v',list:shuffle(alive.map(s=>({seat:s,text:String(ansFor(s,key)?.text||'').trim().slice(0,160)})))};
     return writeState(st);
-  }else if(type==='dibujo'){
-    const d=st.actor,T0=TIMES.dibujo;const gs=alive.filter(s=>s!==d);
+  }else if(ACTED.includes(type)){
+    const d=st.actor,T0=TIMES[type],song=type==='tararea'?CANCIONES[st.qid]:null;const gs=alive.filter(s=>s!==d);
     const oks=gs.filter(s=>ansFor(s,key)?.ok).sort((a,b)=>ansFor(a,key).ms-ansFor(b,key).ms);
     oks.forEach((s,i)=>{gain(s,10000+15000*Math.max(0,1-ansFor(s,key).ms/T0)+(i===0?5000:0));gain(d,8000)});
     gs.forEach(s=>rows[s]=oks.includes(s)?`Adivinó en ${(ansFor(s,key).ms/1000).toFixed(0)} s`:'No la sacó');
-    rows[d]=oks.length?`Dibujó · ${oks.length} adivinaron`:'Nadie adivinó su dibujo';
+    rows[d]=oks.length?`${song?'Tarareó':'Dibujó'} · ${oks.length} adivinaron`:(song?'Nadie reconoció su tarareo':'Nadie adivinó su dibujo');
     if(!oks.length)lose=[d];
-    extra.title='La palabra era';extra.big=DIBUJO[st.qid].toUpperCase();
+    if(song){extra.title='La canción era';extra.big=song[0].toUpperCase();extra.sub=song[1]}
+    else{extra.title='La palabra era';extra.big=DIBUJO[st.qid].toUpperCase()}
   }
   settle(st,lose,rows,gains,extra);
 }
@@ -681,7 +730,7 @@ function scheduleBots(){
       if(TRIVIA.includes(type)){const d=3500+Math.random()*16000,ok=Math.random()<.72;later(d,()=>still()&&writeAnswer(s,{key:k,ok,ms:Math.round(d)}))}
       else if(type==='excusas')later(5000+Math.random()*30000,()=>still()&&writeAnswer(s,{key:k,text:BOT_EXCUSAS[Math.floor(Math.random()*BOT_EXCUSAS.length)]}));
       else if(type==='incomoda')later(3000+Math.random()*12000,()=>still()&&writeAnswer(s,s===actor?{key:k,pick:Math.random()<.5?0:1}:{key:k,guess:Math.random()<.5?0:1}));
-      else if(type==='dibujo'&&s!==actor&&Math.random()<.5){const d=15000+Math.random()*45000;later(d,()=>still()&&writeAnswer(s,{key:k,ok:true,ms:Math.round(d)}))}
+      else if(ACTED.includes(type)&&s!==actor&&Math.random()<.5){const d=12000+Math.random()*(TIMES[type]-20000);later(d,()=>still()&&writeAnswer(s,{key:k,ok:true,ms:Math.round(d)}))}
     });
   }else if(state.phase==='prenda'){
     const pk=state.prenda.key;Object.keys(state.prenda.items).forEach(s=>{if(!isBot(s))return;const c=Math.random()<.7?'hago':'paso';later(1500+Math.random()*3000,()=>{botPrenda[pk+s]=c;if(still())writeAnswer(s,{key:pk,choice:c,votes:{}})})});
@@ -719,8 +768,8 @@ function renderStage(){
     let st='',stc='';
     if(!inGame)st=p.bot?'Bot':(s===me?'Vos':'Listo');
     else if(out)st='Cayó';
-    else if(k&&state.actor===s){st=state.type==='dibujo'?'Dibuja':'Le toca';stc='ok'}
-    else if(k&&(state.type==='dibujo'?answers[s]?.key===k&&answers[s].ok:answers[s]?.key===k)){st=state.type==='dibujo'?'¡La sacó!':'Respondió';stc='ok'}
+    else if(k&&state.actor===s){st=state.type==='dibujo'?'Dibuja':state.type==='tararea'?'Tararea':'Le toca';stc='ok'}
+    else if(k&&(ACTED.includes(state.type)?answers[s]?.key===k&&answers[s].ok:answers[s]?.key===k)){st=ACTED.includes(state.type)?'¡La sacó!':'Respondió';stc='ok'}
     else if(vk&&answers[s]?.key===vk){st='Votó';stc='ok'}
     else if(state.phase==='prenda'&&state.prenda.items[s]!=null){st='Prenda';stc='ok'}
     else if(state.phase==='final'&&state.final.seat===s)st='En la final';
@@ -778,6 +827,7 @@ function buildLobby(){
       <li>Todos juegan al mismo tiempo, cada uno en su celu. Los juegos se van turnando.</li>
       <li><b>Duelo clásico, Revoltijo y Una y una</b>: preguntas de cultura general. Si le errás o no llegás, <b>perdés una huella</b>. Si todos aciertan, la pierde el más lento.</li>
       <li><b>Excusas para zafar</b>: aparece un compromiso familiar, cada uno escribe su excusa y después se vota la mejor. La menos votada pierde una huella.</li>
+      <li><b>Tarareala</b>: a uno le toca una canción en secreto y la tararea en voz alta, sin decir la letra. Los demás escriben el título. Si nadie la saca, pierde una huella el que tarareó.</li>
       <li class="spicyli"><b>La incómoda</b> (picante): a uno le toca una pregunta íntima y responde en secreto. Los demás apuestan qué contestó. Si se niega, pierde una huella.</li>
       <li class="spicyli"><b>Dibujá y adiviná</b> (picante): uno dibuja una palabra subida de tono en su celu y los demás la ven en vivo y escriben. Si nadie la saca, el que dibujó pierde una huella.</li>
       <li class="spicyli"><b>Prendas</b> (picante): el que va a perder una huella puede salvarse haciendo una prenda subida de tono, hasta 2 veces por partida. Los demás votan si la cumplió. Nadie está obligado: siempre se puede elegir perder la huella.</li>
@@ -815,6 +865,7 @@ function buildRound(){
   if(t==='excusas')return buildExcusas();
   if(t==='incomoda')return buildIncomoda();
   if(t==='dibujo')return buildDibujo();
+  if(t==='tararea')return buildTararea();
 }
 function baseR(extra){
   const key=roundKey(state),me=myPlaySeat();
@@ -852,7 +903,7 @@ function drawSlots(){
   if(R.won)shown=new Set(ans.map((_,i)=>i));
   else if(R.type==='clasico'){const n=R.order.length,base=Math.max(1,Math.ceil(n*.25)),max=Math.max(base,Math.floor(n*.7));R.order.slice(0,Math.min(max,base+Math.floor(elapsed/3000))).forEach(i=>shown.add(i))}
   else if(R.type==='pistas'&&elapsed>15000)shown.add(ans.findIndex(c=>c!==' '));
-  else if(R.type==='dibujo'){const first=ans.findIndex(c=>c!==' ');if(elapsed>35000)shown.add(first);if(elapsed>55000&&R.order[1]!=null)shown.add(R.order[1])}
+  else if(ACTED.includes(R.type)){const h=R.type==='tararea'?[30000,45000]:[35000,55000];const first=ans.findIndex(c=>c!==' ');if(elapsed>h[0])shown.add(first);if(elapsed>h[1]&&R.order[1]!=null)shown.add(R.order[1])}
   let li=0;const words=[];let cur=[];
   ans.forEach((ch,i)=>{if(ch===' '){words.push(cur);cur=[];return}
     let txt='',cls='slot';
@@ -973,6 +1024,24 @@ function redraw(){
   (strokes||[]).forEach(s=>{if(!s||s.length<2)return;ctx.beginPath();ctx.moveTo(s[0]*sx,s[1]*sy);if(s.length===2)ctx.lineTo(s[0]*sx+.1,s[1]*sy);for(let i=2;i<s.length;i+=2)ctx.lineTo(s[i]*sx,s[i+1]*sy);ctx.stroke()});
 }
 function onDraw(d){drawDoc=d;if(R&&R.type==='dibujo'&&!R.drawer)redraw()}
+
+/* ----- Tarareala ----- */
+function buildTararea(){
+  const song=CANCIONES[state.qid],d=state.actor,dn=state.players[d].name;
+  baseR({q:{answer:song[0],alts:song[2]||[]},drawer:false});
+  R.drawer=R.playing&&R.me===d;R.order=shuffle([...song[0]].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(R.key));
+  const prev=R.playing&&!R.drawer?ansFor(R.me,R.key):null;if(prev?.ok){R.done=true;R.won=true}
+  if(R.drawer)R.done=true;
+  $('#main').innerHTML=roundHead('tararea',R.drawer?'Tarareala en voz alta: con "na na na" o silbando. Prohibido decir la letra o el nombre.':`${esc(dn)} está tarareando. Escribí el nombre de la canción.`)+`
+    ${R.drawer?`<div class="secret"><span>Tu canción</span><b>${esc(song[0].toUpperCase())}</b><span>${esc(song[1])}</span></div>
+      <p class="note center">Mirá tu celu: cuando alguien la saca, aparece arriba en su trampilla.</p>`
+    :`<div class="hum" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="slots ${song[0].length>14?'dense':''}" id="slots"></div><p class="note center" id="artistHint"></p>`}
+    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué canción es?" aria-label="Nombre de la canción"><button class="btn">Dale</button></form>`:''}
+    <div class="msg ${R.won?'ok':''}" id="rmsg">${!R.playing?'Escuchá y mirá quién la saca.':R.won?'¡La adivinaste! Esperá a los demás…':''}</div></div>`;
+  if($('#ansForm'))$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';guessDraw(v)};
+  R.artist=song[1];
+  drawSlots();
+}
 
 /* ===================== Prendas ===================== */
 let myVotes={};
@@ -1133,7 +1202,8 @@ function tick(){
   }
   if(R&&R.key){
     const el=now-R.start;
-    if(R.q&&!R.won&&R.type!=='excusas')drawSlots();if(R.type==='pistas')drawClues();
+    if(R.q&&!R.won&&R.type!=='excusas')drawSlots();
+    if(R.type==='tararea'){const ah=$('#artistHint');if(ah&&el>20000&&!ah.textContent)ah.textContent='Pista: es de '+R.artist}if(R.type==='pistas')drawClues();
     const sec=Math.ceil((R.T-el)/1000);if(!R.done&&sec<=5&&sec>0&&sec!==R.lastSec){R.lastSec=sec;sfx('tick')}
     if(!R.done&&el>=R.T){if(TRIVIA.includes(R.type))finishTrivia(false);else if(R.type==='excusas')sendExcusa();else R.done=true}
     if(R.drawer&&R.dirty&&now-R.lastSend>300){R.dirty=false;R.lastSend=now;store.doc('draw/live').set({key:R.key,s:R.strokes}).catch(()=>{R.dirty=true})}
