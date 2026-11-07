@@ -263,6 +263,15 @@ const CLASICO=[
 ["¿Cuántos milímetros tiene una pulgada?","25,4"],
 ["¿Quién fue el primer presidente argentino bajo la Constitución de 1853?","Urquiza",["justo jose de urquiza"]],
 ["¿Qué vitamina produce la piel cuando le da el sol?","D",["vitamina d"]],
+["¿Qué festival electrónico gigante se hace en Boom, Bélgica?","Tomorrowland"],
+["¿En qué isla española están los boliches Amnesia y Pacha?","Ibiza"],
+["En música electrónica, ¿qué significan las siglas BPM?","Beats por minuto",["golpes por minuto","pulsaciones por minuto","beats per minute"]],
+["¿En qué ciudad de Estados Unidos nació el techno?","Detroit"],
+["¿Qué género electrónico nació en Chicago en los años 80?","House"],
+["¿Qué dúo francés de electrónica tocaba con cascos de robot?","Daft Punk"],
+["¿Qué DJ sueco hizo \"Levels\" y \"Wake Me Up\"?","Avicii"],
+["¿Qué DJ holandés saltó a la fama con \"Animals\"?","Martin Garrix",["garrix"]],
+["¿Qué DJ argentino conduce el programa de radio \"Resident\"?","Hernán Cattaneo",["cattaneo"]],
 ];
 // [pista, palabra]
 const REVOLT=[
@@ -306,6 +315,11 @@ const REVOLT=[
 ["Instrumento que mide espesores con precisión de centésimas","MICROMETRO"],
 ["Palabra que se lee igual al derecho y al revés","PALINDROMO"],
 ["Medicamento que combate las bacterias","ANTIBIOTICO"],
+["Fiesta que sigue cuando cierra el boliche","AFTER"],
+["Lugar para salir a bailar","BOLICHE"],
+["Música electrónica nacida en Detroit","TECHNO"],
+["El que cuida la puerta del boliche","PATOVICA"],
+["Lo que sentís al otro día de una fiesta larga","RESACA"],
 ];
 // [[pistas], respuesta, alternativas]
 const PISTAS=[
@@ -337,6 +351,9 @@ const PISTAS=[
 [["Nació en Málaga","Cofundó el cubismo","Tuvo una época azul","Pintó el Guernica"],"Picasso",["pablo picasso"]],
 [["Se construyó durante siglos","Tiene miles de kilómetros","Está en Asia","Defendía a China de las invasiones"],"Gran Muralla",["muralla china","la gran muralla","gran muralla china"]],
 [["Viajó en el barco Beagle","Recorrió la Patagonia","Estudió las Galápagos","Escribió \"El origen de las especies\""],"Darwin",["charles darwin"]],
+[["Es argentino","Conduce el programa Resident","Tocó muchas veces en Burning Man","Es referente mundial del progressive house"],"Cattaneo",["hernan cattaneo"]],
+[["Es un festival","Se hace en Bélgica","Sus escenarios parecen de cuento","Su nombre significa \"la tierra del mañana\""],"Tomorrowland"],
+[["Es una isla","Está en el Mediterráneo","Pertenece a España","Es la meca mundial de la música electrónica"],"Ibiza"],
 ];
 // Final: [pregunta, respuesta, alternativas]
 const FINALQ=[
@@ -415,6 +432,21 @@ const INCOMODA=[
 ["¿Lo hiciste alguna vez en la playa o en una pileta?","Sí","No"],
 ["¿Preferís ducha de a dos o bañera de a dos?","Ducha","Bañera"],
 ["¿Alguna vez te salió mal un intento de ser sexy?","Sí","No"],
+["¿Alguna vez llegaste a tu casa de día después de un after?","Sí","No"],
+["¿Probaste alguna vez alguna droga ilegal?","Sí","No"],
+["¿Fumaste porro alguna vez?","Sí","No"],
+["¿Le mentiste alguna vez a tu pareja sobre lo que tomaste en una fiesta?","Sí","No"],
+["¿Te quedaste alguna vez bailando hasta que prendieron las luces?","Sí","No"],
+["¿Te besaste alguna vez con un desconocido en una fiesta electrónica?","Sí","No"],
+["¿Te perdiste alguna vez de tus amigos en un festival?","Sí","No"],
+["¿Faltaste alguna vez al trabajo por la resaca de una fiesta?","Sí","No"],
+["¿Entraste alguna vez a una fiesta con algo escondido en la ropa?","Sí","No"],
+["¿Dijiste alguna vez \"nunca más\" y a la semana estabas de nuevo en la pista?","Sí","No"],
+["¿Preferís boliche cerrado o fiesta electrónica al aire libre?","Boliche","Aire libre"],
+["En tu pareja, ¿quién aguanta más en la pista?","Yo","Mi pareja"],
+["¿Te colaste alguna vez en una fiesta sin entrada?","Sí","No"],
+["¿Tuviste que irte alguna vez de una fiesta porque te pegó mal algo?","Sí","No"],
+["¿Hiciste en una fiesta algo que tu pareja todavía no sabe?","Sí","No"],
 ];
 // Excusas: situación familiar de la que hay que zafar
 const EXCUSAS=[
@@ -438,6 +470,8 @@ const EXCUSAS=[
 "Tu suegra te invita a su clase de zumba para que \"te muevas un poco\".",
 "Cumpleaños del perro de tu cuñada. Sí, hay torta y gorritos.",
 "Viaje en familia de 9 horas en auto a la costa, con los chicos y sin aire.",
+"Asado familiar el domingo a las 12. Vos llegás del after a las 10 de la mañana.",
+"Tu tía te pide que la lleves a Ezeiza a las 6 de la mañana, justo la noche del festival.",
 ];
 const BOT_EXCUSAS=["Tengo turno con el dentista justo a esa hora.","Se me inundó el baño y espero al plomero.","Me agarró un virus rarísimo, no quiero contagiar.","El perro se comió las llaves del auto.","Justo me toca guardia en el laburo.","Se me murió el celular y no me enteré de nada."];
 // Prendas subidas de tono (siempre se puede elegir perder la huella)
@@ -494,11 +528,19 @@ const PRENDAS=[
 "Contá tu mejor anécdota en un telo.",
 "Hacé un brindis subido de tono por la pareja que tenés a la izquierda.",
 "Cambiá una prenda de ropa con tu pareja hasta la próxima ronda.",
+"Hacé tu mejor paso de baile de after durante 20 segundos.",
+"Imitá a un DJ en el momento del drop, con cara de concentración incluida.",
+"Contá la fiesta más larga de tu vida: a qué hora entraste y a qué hora saliste.",
+"Hacé de patovica y revisá en la entrada a tu pareja (con todo el cuidado del mundo).",
+"Bailá pegado/a con tu pareja como si fueran las 7 de la mañana en el after.",
+"Contá tu peor resaca y cómo la sobreviviste.",
+"Contá la anécdota más zarpada que viviste en una fiesta electrónica.",
 ];
 // Palabras para dibujar y adivinar
 const DIBUJO=["Esposas","Jacuzzi","Lencería","Kamasutra","Despedida de soltero","Preservativo","Strip póker","Beso francés","Telo","Látigo","Tanga","Chupón","Luna de miel","Sex shop","Striptease","Desnudo","Ducha de a dos","Vibrador","Ligas","Cucharita","Antifaz","Pole dance","Corpiño","Mañanero","Cama redonda","Espejo en el techo","Crema batida","Masaje con aceite","Bata de seda","Disfraz de enfermera","Nudista","Baile del caño","Cama de agua","Pétalos de rosa","Boxer","Portaligas"
 
-,"Trío","Ropa interior","Hora feliz","Jugar al doctor","Esposas peludas","Ombligo","Pezón","Cola","Lengua","Media de red","Cama king","Beso de lengua","Pareja de swingers","Mensaje picante","Selfie desnuda","Albornoz","Gemido","Motel","Tacos aguja","Sábanas de seda","Uniforme de bombero","Policía sexy","Frutillas con chocolate","Cola de conejita"];
+,"Trío","Ropa interior","Hora feliz","Jugar al doctor","Esposas peludas","Ombligo","Pezón","Cola","Lengua","Media de red","Cama king","Beso de lengua","Pareja de swingers","Mensaje picante","Selfie desnuda","Albornoz","Gemido","Motel","Tacos aguja","Sábanas de seda","Uniforme de bombero","Policía sexy","Frutillas con chocolate","Cola de conejita"
+,"DJ","Porro","Pastilla","Bola de espejos","Patovica","Resaca","Rave","Barra libre","Láser","Festival","Pulsera VIP","After"];
 
 // Tarareala: [título, intérprete, alternativas]
 const CANCIONES=[
@@ -542,6 +584,15 @@ const CANCIONES=[
 ["Feliz cumpleaños","Clásico de cumpleaños",["cumpleanos feliz","happy birthday"]],
 ["Himno Nacional Argentino","Vicente López y Planes / Blas Parera",["himno nacional","himno argentino","himno"]],
 ["Arroz con leche","Canción infantil"],
+["Levels","Avicii"],
+["Wake Me Up","Avicii"],
+["Animals","Martin Garrix"],
+["One More Time","Daft Punk"],
+["Sandstorm","Darude"],
+["Titanium","David Guetta"],
+["Children","Robert Miles"],
+["Blue (Da Ba Dee)","Eiffel 65",["blue","da ba dee","blue da ba dee"]],
+["Insomnia","Faithless"],
 ];
 
 /* ===================== Utilidades ===================== */
