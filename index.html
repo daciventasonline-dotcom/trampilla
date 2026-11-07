@@ -8,11 +8,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700;800&display=swap">
 <style>
-/* Layout: estudio de TV de una sola pantalla. Arriba las 4 trampillas (el "piso"), abajo la consola de juego del jugador. Look único, oscuro de estudio. */
+/* Layout: estudio de TV de una sola pantalla. Arriba las 5 trampillas (el "piso"), abajo la consola de juego del jugador. Look único, oscuro de estudio. */
 :root{
   --bg:#110e29; --bg2:#1b1742; --panel:#221d50; --line:#3a3478;
   --ink:#f6f2ff; --mute:#aaa3da; --gold:#ffbf3c; --hot:#ff4a6b; --ice:#7ee6ff; --ok:#4fe3a1;
-  --s1:#ffbf3c; --s2:#7ee6ff; --s3:#ff7ad9; --s4:#b69bff;
+  --s1:#ffbf3c; --s2:#7ee6ff; --s3:#ff7ad9; --s4:#b69bff; --s5:#4fe3a1;
   --display:"Bungee","Arial Black",Impact,sans-serif;
   --body:"Rubik",system-ui,-apple-system,"Segoe UI",sans-serif;
   --canvas:#f6f2ff; --ink-dark:#16123a; --spicy:#ff4a6b;
@@ -38,10 +38,10 @@ button{cursor:pointer}
 /* El piso con las trampillas */
 .stage{position:relative;padding:14px 6px 10px;border-radius:18px;background:linear-gradient(180deg,#1d1846,#151135);border:1px solid var(--line);overflow:hidden}
 .stage::before{content:"";position:absolute;inset:auto -20% -40% -20%;height:90%;background:repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 1px,transparent 1px 44px),repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 1px,transparent 1px 30px);transform:perspective(300px) rotateX(55deg);transform-origin:bottom;pointer-events:none}
-.doors{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.doors{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
 .door{--c:var(--s1);display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:0;padding:4px 0;min-width:0}
-.door.s2{--c:var(--s2)}.door.s3{--c:var(--s3)}.door.s4{--c:var(--s4)}
-.hole{position:relative;width:68px;height:68px;max-width:100%;border-radius:50%;background:#05030f;box-shadow:0 0 0 3px var(--c),0 0 22px color-mix(in srgb,var(--c) 55%,transparent),inset 0 6px 14px #000;overflow:hidden;perspective:200px}
+.door.s2{--c:var(--s2)}.door.s3{--c:var(--s3)}.door.s4{--c:var(--s4)}.door.s5{--c:var(--s5)}
+.hole{position:relative;width:60px;height:60px;max-width:100%;border-radius:50%;background:#05030f;box-shadow:0 0 0 3px var(--c),0 0 22px color-mix(in srgb,var(--c) 55%,transparent),inset 0 6px 14px #000;overflow:hidden;perspective:200px}
 .flap{position:absolute;top:0;bottom:0;width:50%;background:repeating-linear-gradient(45deg,color-mix(in srgb,var(--c) 30%,#2a2560) 0 6px,color-mix(in srgb,var(--c) 18%,#221d50) 6px 12px);transition:transform .5s cubic-bezier(.6,0,.4,1)}
 .flap.l{left:0;transform-origin:left center}.flap.r{right:0;transform-origin:right center}
 .avatar{position:absolute;inset:10px;border-radius:50%;display:grid;place-items:center;background:var(--c);color:#16123a;font-family:var(--display);font-size:24px;z-index:2;transition:transform .7s cubic-bezier(.5,0,.9,.4),opacity .7s}
@@ -140,7 +140,8 @@ details ul b{color:var(--ink)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);font-weight:700;padding:10px 16px;border-radius:12px;z-index:60;max-width:90vw;text-align:center}
 .takeover{font-size:13px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
-@media (max-width:380px){.hole{width:58px;height:58px}.slot{width:26px;height:34px;font-size:16px}.tile{width:40px;height:44px}}
+@media (max-width:420px){.hole{width:54px;height:54px}.avatar{inset:8px;font-size:20px}.nm{font-size:12px}}
+@media (max-width:380px){.hole{width:48px;height:48px}.slot{width:26px;height:34px;font-size:16px}.tile{width:40px;height:44px}}
 .or{text-align:center;color:var(--mute);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.1em}
 .code{font-family:var(--display);font-size:44px;letter-spacing:.12em;color:var(--gold);text-align:center;line-height:1}
 #codeIn{text-transform:uppercase;letter-spacing:.3em;font-family:var(--display);text-align:center}
@@ -598,13 +599,13 @@ const CANCIONES=[
 /* ===================== Utilidades ===================== */
 const RESCUES=2, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=20, TRIES=2;
 const TIMES={tararea:60000,clasico:25000,revoltillo:25000,pistas:25000,excusas:60000,incomoda:30000,dibujo:75000,vote:30000,prenda:90000};
-const SEATS=['s1','s2','s3','s4'];
+const SEATS=['s1','s2','s3','s4','s5'];
 const TRIVIA=['clasico','revoltillo','pistas'],SPICY=['incomoda','dibujo'],ACTED=['dibujo','tararea'];
 const CYCLE={clasico:['clasico','revoltillo','tararea','excusas','pistas'],picante:['incomoda','clasico','dibujo','tararea','excusas','revoltillo','incomoda','pistas','dibujo']};
 const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una',excusas:'Excusas para zafar',tararea:'Tarareala',incomoda:'La incómoda',dibujo:'Dibujá y adiviná'};
 const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.',tararea:''};
 const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#fff';
-const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa'];
+const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa','Arandela'];
 const QUIPS_FALL=['¡Se abrió el piso!','Mandale un saludo a la familia… desde abajo.','Nadie se salva.','Ahora caíste vos.','Chau, nos vemos en la próxima.'];
 const QUIPS_OK=['Qué nivel, eh.','Esto es cultura general.','Venían bien, pero el piso está atento.','Respiren, que sigue.'];
 const $=s=>document.querySelector(s);
@@ -696,7 +697,7 @@ function startGame(lives,mode){
   const deck={clasico:shuffle(range(CLASICO.length),r),revoltillo:shuffle(range(REVOLT.length),r),pistas:shuffle(range(PISTAS.length),r),
     excusas:shuffle(range(EXCUSAS.length),r),tararea:shuffle(range(CANCIONES.length),r),incomoda:shuffle(range(INCOMODA.length),r),dibujo:shuffle(range(DIBUJO.length),r),
     prenda:shuffle(range(PRENDAS.length),r),final:shuffle(range(FINALQ.length),r).slice(0,10)};
-  writeState({phase:'intro',mode,hostUid:uid,gameId,lives,players,deck,counters:{},turn:Math.floor(r()*4),roundN:0,fallOrder:[],result:null,final:null,champion:null});
+  writeState({phase:'intro',mode,hostUid:uid,gameId,lives,players,deck,counters:{},turn:Math.floor(r()*5),roundN:0,fallOrder:[],result:null,final:null,champion:null});
 }
 function nextRound(){
   const st=clone(state);st.roundN++;st.turn=(st.turn||0)+1;
@@ -907,7 +908,7 @@ async function onSeatTap(s){
   keepAwake();sfx('ok');
 }
 async function addBot(){
-  const s=SEATS.find(x=>!seats[x]?.uid);if(!s)return toast('Ya están las 4 trampillas ocupadas.');
+  const s=SEATS.find(x=>!seats[x]?.uid);if(!s)return toast('Ya están las 5 trampillas ocupadas.');
   await store.doc('seats/'+s).set({uid:'bot-'+s,name:BOT_NAMES[SEATS.indexOf(s)],bot:true});
 }
 function buildLobby(){
@@ -954,14 +955,14 @@ function updateLobby(){
   const n=SEATS.filter(s=>seats[s]?.uid).length;const me=mySeat();
   if($('#connCount'))$('#connCount').textContent=`Conectados: ${conns.size+1} celular${conns.size?'es':''}.`;
   const sb=$('#startBtn');if(!sb)return;
-  sb.disabled=readOnly||n<2||!me;$('#botBtn').disabled=readOnly||n>=4;
+  sb.disabled=readOnly||n<2||!me;$("#botBtn").disabled=readOnly||n>=SEATS.length;
   $('#seatHint').textContent=me?(n<2?'Esperando a que se sienten los demás (o agregá un bot).':`Hay ${n} jugadores. Cualquiera sentado puede arrancar.`):'Escribí tu nombre y tocá un círculo libre de arriba.';
 }
 
 /* ===================== Ronda: base ===================== */
 let R=null;
 function roundHead(type,extraHelp){
-  const c=`var(--${'s'+(1+(state.roundN-1)%4)})`;
+  const c=`var(--${'s'+(1+(state.roundN-1)%5)})`;
   return `<div class="card ${SPICY.includes(type)?'spicycard':''}" id="rcard" style="--c:${c}"><div class="gametag">${TYPE_NAME[type]}</div><p class="help">${extraHelp||TYPE_HELP[type]}</p><div class="timer" id="timer"><i></i></div>`;
 }
 function buildRound(){
@@ -1062,7 +1063,7 @@ function buildVote(){
   $('#main').innerHTML=`<div class="card" id="rcard"><div class="gametag">Excusas para zafar · Votación</div>
     <p class="help">${esc(EXCUSAS[state.qid])}</p><div class="timer" id="timer"><i></i></div>
     <p class="question">¿Cuál es la mejor excusa?</p>
-    <div class="opts" id="vopts">${v.list.map((e,i)=>`<button class="excuse" data-s="${e.seat}" ${!me||e.seat===me||readOnly?'disabled':''} aria-pressed="${mine===e.seat}"><b>${'ABCD'[i]}</b><span>${e.text?esc(e.text):'<i>No se le ocurrió nada.</i>'}</span>${e.seat===me?'<em>La tuya</em>':''}</button>`).join('')}</div>
+    <div class="opts" id="vopts">${v.list.map((e,i)=>`<button class="excuse" data-s="${e.seat}" ${!me||e.seat===me||readOnly?'disabled':''} aria-pressed="${mine===e.seat}"><b>${'ABCDE'[i]}</b><span>${e.text?esc(e.text):'<i>No se le ocurrió nada.</i>'}</span>${e.seat===me?'<em>La tuya</em>':''}</button>`).join('')}</div>
     <div class="msg" id="rmsg">${!me?'Mirás la votación.':mine?'Voto enviado. Podés cambiarlo.':'Tocá la que más te convenza (no podés votarte).'}</div></div>`;
   $('#vopts').onclick=e=>{const b=e.target.closest('.excuse');if(!b||b.disabled||!me)return;
     writeAnswer(me,{key:v.key,vote:b.dataset.s});sfx('tick');document.querySelectorAll('.excuse').forEach(x=>x.setAttribute('aria-pressed',x===b));setMsg('#rmsg','ok','Voto enviado. Podés cambiarlo.')};
@@ -1327,7 +1328,7 @@ $('#takeoverBtn').onclick=()=>{if(!state)return;const st=clone(state);st.hostUid
 /* ===================== Red (sin servidor: un celu arma la sala) ===================== */
 const PREFIX='trampilla-daci-v1-';
 const PEER_OPTS={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]}};
-const PATH_OK=/^(game\/state|seats\/s[1-4]|answers\/s[1-4]|draw\/live)$/;
+const PATH_OK=/^(game\/state|seats\/s[1-5]|answers\/s[1-5]|draw\/live)$/;
 const roomLink=()=>location.origin+location.pathname+'?sala='+roomCode;
 function genCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ';let c='';for(let i=0;i<4;i++)c+=A[Math.floor(Math.random()*A.length)];return c}
 function netBar(t){const b=$('#netBar');b.hidden=!t;b.textContent=t||''}
