@@ -18,6 +18,7 @@
   --canvas:#f6f2ff; --ink-dark:#16123a; --spicy:#ff4a6b;
   color-scheme:dark;
 }
+[hidden]{display:none!important}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4;
   background-image:radial-gradient(120% 60% at 50% -10%,#3b2a7a 0%,transparent 60%),radial-gradient(80% 40% at 50% 110%,#2a1650 0%,transparent 70%);
@@ -173,6 +174,15 @@ textarea:focus{border-color:var(--ice);outline:none}
 .hum i{width:8px;border-radius:4px;background:var(--ice);animation:hum 1s ease-in-out infinite}
 .hum i:nth-child(2){animation-delay:.15s}.hum i:nth-child(3){animation-delay:.3s}.hum i:nth-child(4){animation-delay:.45s}.hum i:nth-child(5){animation-delay:.6s}
 @keyframes hum{0%,100%{height:10px}50%{height:40px}}
+.task{background:color-mix(in srgb,var(--gold) 12%,var(--bg));border:2px solid var(--gold);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.task span{font-family:var(--display);font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold)}
+.task p{margin:0;font-size:17px;font-weight:600;line-height:1.35}
+.task b{color:var(--gold)}
+.lives{margin:-4px 0 0;font-size:14px}.lives b{color:var(--hot)}
+.howto{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;color:var(--mute)}.howto b{color:var(--ink)}
+.waiting{text-align:center;color:var(--mute);font-weight:600;font-size:14px;margin:0}
+.giveup{flex:0 0 auto}
+form.ans{flex-wrap:wrap}form.ans input{flex:1 1 140px}
 </style>
 </head>
 <body>
@@ -187,6 +197,7 @@ textarea:focus{border-color:var(--ice);outline:none}
   <section class="stage" aria-label="Trampillas de los jugadores"><div class="doors" id="doors"></div></section>
   <div class="banner" id="netBar" hidden></div>
   <main id="main"></main>
+  <p class="waiting" id="waitList" hidden></p>
   <div class="row" id="hostBar" hidden><span class="note takeover" id="takeoverNote">Parece que el juego se trabó.</span><button class="btn ghost" id="takeoverBtn">Tomar el control</button></div>
 </div>
 
@@ -597,13 +608,22 @@ const CANCIONES=[
 ];
 
 /* ===================== Utilidades ===================== */
-const RESCUES=2, REVEAL_MS=7000, INTRO_MS=4000, FINAL_MS=120000, MAX_ROUNDS=20, TRIES=2;
+const RESCUES=2, REVEAL_MS=20000, INTRO_MS=30000, FINAL_MS=120000, MAX_ROUNDS=20, TRIES=2;
 const TIMES={tararea:60000,clasico:25000,revoltillo:25000,pistas:25000,excusas:60000,incomoda:30000,dibujo:75000,vote:30000,prenda:90000};
 const SEATS=['s1','s2','s3','s4','s5'];
 const TRIVIA=['clasico','revoltillo','pistas'],SPICY=['incomoda','dibujo'],ACTED=['dibujo','tararea'];
 const CYCLE={clasico:['clasico','revoltillo','tararea','excusas','pistas'],picante:['incomoda','clasico','dibujo','tararea','excusas','revoltillo','incomoda','pistas','dibujo']};
 const TYPE_NAME={clasico:'Duelo clásico',revoltillo:'Revoltijo',pistas:'Una y una',excusas:'Excusas para zafar',tararea:'Tarareala',incomoda:'La incómoda',dibujo:'Dibujá y adiviná'};
-const TYPE_HELP={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.',tararea:''};
+const TYPE_HELP_OLD={clasico:'Las letras van apareciendo solas. Escribí la respuesta.',revoltillo:'Tocá las letras en orden para armar la palabra.',pistas:'Cada 5 segundos aparece una pista nueva.',excusas:'Escribí la mejor excusa para no ir. Después se vota.',tararea:''};
+const GOAL_BODY='No quedarte sin huellas (vidas). El que pierde la ronda pierde una huella; sin huellas, caés por la trampilla. El último en pie juega la final por el pozo.';
+const GOAL='Objetivo: no quedarte sin huellas (vidas). El que pierde la ronda pierde una huella; sin huellas, caés por la trampilla. El último en pie juega la final por el pozo.';
+const TASK={
+  clasico:'Escribí la respuesta y tocá Dale. Tenés 2 intentos. Si le errás o no llegás, perdés una huella. Si aciertan todos, la pierde el más lento.',
+  revoltillo:'Tocá las letras en orden para armar la palabra. Si le errás dos veces o no llegás, perdés una huella. Si aciertan todos, la pierde el más lento.',
+  pistas:'Cada 5 segundos sale una pista nueva. Escribí la respuesta apenas te des cuenta. Si le errás o no llegás, perdés una huella.',
+  excusas:'Escribí una excusa para no ir y tocá Mandar. Después todos votan la mejor: la menos votada pierde una huella.',
+};
+const WATCH='Estás afuera de esta ronda: solo mirás cómo juegan los demás.';
 const CSSV=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim()||'#fff';
 const BOT_NAMES=['Robotina','Tuerquita','El Profe','Chispa','Arandela'];
 const QUIPS_FALL=['¡Se abrió el piso!','Mandale un saludo a la familia… desde abajo.','Nadie se salva.','Ahora caíste vos.','Chau, nos vemos en la próxima.'];
@@ -715,9 +735,10 @@ function playerSeats(st=state){return SEATS.filter(s=>st.players[s])}
 const isBot=s=>!!state.players[s]?.bot;
 const ansFor=(s,k)=>{const a=answers[s];return a&&a.key===k?a:null};
 
+function allReady(){const k=readyKey();let need=SEATS.filter(s=>state.players[s]&&!isBot(s)&&state.players[s].alive);if(!need.length)need=SEATS.filter(s=>state.players[s]&&!isBot(s));return need.every(s=>ansFor(s,k)?.ready)}
 function roundComplete(){
   const k=roundKey(state),alive=aliveSeats();
-  if(ACTED.includes(state.type))return alive.filter(s=>s!==state.actor).every(s=>ansFor(s,k)?.ok);
+  if(ACTED.includes(state.type))return alive.filter(s=>s!==state.actor).every(s=>{const a=ansFor(s,k);return a&&(a.ok||a.gaveup||isBot(s))});
   return alive.every(s=>ansFor(s,k));
 }
 function resolveRound(){
@@ -833,10 +854,10 @@ function scheduleBots(){
   if(state.phase==='round'){
     const k=roundKey(state),type=state.type,actor=state.actor;
     aliveSeats().forEach(s=>{if(!isBot(s))return;
-      if(TRIVIA.includes(type)){const d=3500+Math.random()*16000,ok=Math.random()<.72;later(d,()=>still()&&writeAnswer(s,{key:k,ok,ms:Math.round(d)}))}
-      else if(type==='excusas')later(5000+Math.random()*30000,()=>still()&&writeAnswer(s,{key:k,text:BOT_EXCUSAS[Math.floor(Math.random()*BOT_EXCUSAS.length)]}));
-      else if(type==='incomoda')later(3000+Math.random()*12000,()=>still()&&writeAnswer(s,s===actor?{key:k,pick:Math.random()<.5?0:1}:{key:k,guess:Math.random()<.5?0:1}));
-      else if(ACTED.includes(type)&&s!==actor&&Math.random()<.5){const d=12000+Math.random()*(TIMES[type]-20000);later(d,()=>still()&&writeAnswer(s,{key:k,ok:true,ms:Math.round(d)}))}
+      if(TRIVIA.includes(type)){const d=2500+Math.random()*9000,ok=Math.random()<.72;later(d,()=>still()&&writeAnswer(s,{key:k,ok,ms:Math.round(d)}))}
+      else if(type==='excusas')later(4000+Math.random()*12000,()=>still()&&writeAnswer(s,{key:k,text:BOT_EXCUSAS[Math.floor(Math.random()*BOT_EXCUSAS.length)]}));
+      else if(type==='incomoda')later(2000+Math.random()*6000,()=>still()&&writeAnswer(s,s===actor?{key:k,pick:Math.random()<.5?0:1}:{key:k,guess:Math.random()<.5?0:1}));
+      else if(ACTED.includes(type)&&s!==actor){const d=8000+Math.random()*25000,ok=Math.random()<.55;later(d,()=>still()&&writeAnswer(s,ok?{key:k,ok:true,ms:Math.round(d)}:{key:k,ok:false,gaveup:true}))}
     });
   }else if(state.phase==='prenda'){
     const pk=state.prenda.key;Object.keys(state.prenda.items).forEach(s=>{if(!isBot(s))return;const c=Math.random()<.7?'hago':'paso';later(1500+Math.random()*3000,()=>{botPrenda[pk+s]=c;if(still())writeAnswer(s,{key:pk,choice:c,votes:{}})})});
@@ -846,11 +867,11 @@ setInterval(()=>{
   if(!state||!isHost()||readOnly)return;
   const pk=phaseKey(state);seenAt[pk]??=performance.now();const el=performance.now()-seenAt[pk];
   switch(state.phase){
-    case 'intro': if(el>INTRO_MS)once(pk,nextRound);break;
+    case 'intro': if(allReady()||el>INTRO_MS)once(pk,nextRound);break;
     case 'round': scheduleBots();if(roundComplete()||el>TIMES[state.type]+3000)once(pk,resolveRound);break;
     case 'vote': if(playerSeats().filter(s=>!isBot(s)).every(s=>ansFor(s,state.vote.key))||el>TIMES.vote+3000)once(pk,resolveVote);break;
     case 'prenda': scheduleBots();if(prendaComplete()||el>TIMES.prenda+3000)once(pk,resolvePrenda);break;
-    case 'reveal': if(el>(state.result?.type==='incomoda'?15000:state.result?.type==='excusas'?12000:REVEAL_MS))once(pk,advance);break;
+    case 'reveal': if(allReady()||el>(state.result?.type==='incomoda'?25000:REVEAL_MS))once(pk,advance);break;
     case 'final':{const f=state.final,a=answers[f.seat];
       if(state.players[f.seat].bot){if(el>15000)once(pk,()=>endGame(f.botCorrect))}
       else if(a&&a.key===f.key&&a.done)once(pk,()=>endGame(a.correct));
@@ -920,6 +941,7 @@ function buildLobby(){
       <p class="note" id="connCount">Conectados: 1 celular (este).</p>
       <p class="note">Dejá este celu con la pantalla prendida y la página abierta: es el que arma la sala.</p>`:''}
     ${netRole==='client'?`<p class="note center">Estás en la sala <b>${roomCode}</b>.</p>`:''}
+    ${taskBox(GOAL_BODY,'Objetivo del juego')}
     <h2>Elegí tu trampilla</h2>
     <label class="f" for="nameIn">Tu nombre<input id="nameIn" maxlength="14" autocomplete="nickname" value="${esc(name)}" placeholder="Ej: Damián"></label>
     <p class="note" id="seatHint">Escribí tu nombre y tocá un círculo libre de arriba.</p>
@@ -961,9 +983,12 @@ function updateLobby(){
 
 /* ===================== Ronda: base ===================== */
 let R=null;
+function taskBox(text,title){return `<div class="task"><span>${title||'Tu tarea'}</span><p>${text}</p></div>`}
+function livesLine(){const me=myPlaySeat();if(!me||!state.players[me].alive)return '';const n=state.players[me].lives;return `<p class="note lives">Te ${n===1?'queda 1 huella':`quedan ${n} huellas`}. Si perdés esta ronda, ${n===1?'<b>caés</b>':'perdés una'}.</p>`}
 function roundHead(type,extraHelp){
   const c=`var(--${'s'+(1+(state.roundN-1)%5)})`;
-  return `<div class="card ${SPICY.includes(type)?'spicycard':''}" id="rcard" style="--c:${c}"><div class="gametag">${TYPE_NAME[type]}</div><p class="help">${extraHelp||TYPE_HELP[type]}</p><div class="timer" id="timer"><i></i></div>`;
+  const text=R&&!R.playing?WATCH:(extraHelp||TASK[type]);
+  return `<div class="card ${SPICY.includes(type)?'spicycard':''}" id="rcard" style="--c:${c}"><div class="gametag">Ronda ${state.roundN} · ${TYPE_NAME[type]}</div>${taskBox(text)}${R&&R.playing?livesLine():''}<div class="timer" id="timer"><i></i></div>`;
 }
 function buildRound(){
   const t=state.type;
@@ -1061,7 +1086,7 @@ function buildVote(){
   const v=state.vote,me=myPlaySeat();R={vkey:v.key,start:performance.now(),T:TIMES.vote};
   const mine=me?ansFor(me,v.key)?.vote:null;
   $('#main').innerHTML=`<div class="card" id="rcard"><div class="gametag">Excusas para zafar · Votación</div>
-    <p class="help">${esc(EXCUSAS[state.qid])}</p><div class="timer" id="timer"><i></i></div>
+    ${taskBox(me?'Leé las excusas y tocá la que más te guste (la tuya no se puede votar). La menos votada pierde una huella.':'Mirá cómo votan los demás.')}<p class="help">${esc(EXCUSAS[state.qid])}</p><div class="timer" id="timer"><i></i></div>
     <p class="question">¿Cuál es la mejor excusa?</p>
     <div class="opts" id="vopts">${v.list.map((e,i)=>`<button class="excuse" data-s="${e.seat}" ${!me||e.seat===me||readOnly?'disabled':''} aria-pressed="${mine===e.seat}"><b>${'ABCDE'[i]}</b><span>${e.text?esc(e.text):'<i>No se le ocurrió nada.</i>'}</span>${e.seat===me?'<em>La tuya</em>':''}</button>`).join('')}</div>
     <div class="msg" id="rmsg">${!me?'Mirás la votación.':mine?'Voto enviado. Podés cambiarlo.':'Tocá la que más te convenza (no podés votarte).'}</div></div>`;
@@ -1073,7 +1098,7 @@ function buildVote(){
 function buildIncomoda(){
   baseR({});const q=INCOMODA[state.qid],t=state.actor,tn=state.players[t].name;
   const isT=R.playing&&R.me===t;const prev=R.playing?ansFor(R.me,R.key):null;if(prev)R.done=true;
-  $('#main').innerHTML=roundHead('incomoda',isT?'Respondé la verdad. Nadie ve tu respuesta hasta el final.':`Le toca a ${tn}. Apostá qué va a contestar.`)+`
+  $('#main').innerHTML=roundHead('incomoda',isT?'Te toca a vos. Respondé la verdad tocando una opción: nadie la ve hasta el final. Los demás apuestan qué contestaste. Si te negás, perdés una huella.':`Le toca a <b>${esc(tn)}</b>. Apostá qué va a contestar tocando una opción. Si acertás, sumás plata. Acá no perdés huellas.`)+`
     <p class="question">${isT?'':`<span class="for">Para ${esc(tn)}:</span> `}${esc(q[0])}</p>
     ${R.playing&&!prev?`<div class="row bigopts"><button class="btn" data-o="0">${esc(q[1])}</button><button class="btn" data-o="1">${esc(q[2])}</button></div>
       ${isT?`<button class="btn ghost" data-o="no">Me niego a responder (pierdo una huella)</button>`:''}`:''}
@@ -1092,14 +1117,15 @@ function buildDibujo(){
   const prev=R.playing&&!R.drawer?ansFor(R.me,R.key):null;if(prev?.ok){R.done=true;R.won=true}
   if(R.drawer)R.done=true;
   R.strokes=[];R.dirty=false;R.lastSend=0;
-  $('#main').innerHTML=roundHead('dibujo',R.drawer?'Dibujá esto sin letras ni números. Los demás lo ven en vivo.':`${esc(dn)} está dibujando. Escribí lo que te parece.`)+`
+  $('#main').innerHTML=roundHead('dibujo',R.drawer?'Te toca dibujar. Dibujá con el dedo la palabra de abajo, sin letras ni números: los demás lo ven en vivo. Si nadie la adivina, perdés una huella.':`<b>${esc(dn)}</b> está dibujando. Escribí qué es y tocá Dale; podés probar todas las veces que quieras. Si no sale, tocá Me rindo.`)+`
     ${R.drawer?`<div class="secret"><span>Tu palabra</span><b>${esc(word.toUpperCase())}</b></div>`:`<div class="slots" id="slots"></div>`}
     <canvas id="cv" class="canvas ${R.drawer?'drawing':''}" aria-label="Pizarra de dibujo"></canvas>
     ${R.drawer?`<div class="row"><button class="btn ghost" id="clrBtn">Borrar todo</button><button class="btn ghost" id="undoBtn">Deshacer</button></div>`:''}
-    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué es?" aria-label="Tu respuesta"><button class="btn">Dale</button></form>`:''}
+    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué es?" aria-label="Tu respuesta"><button class="btn">Dale</button></form><button class="btn ghost giveup" id="giveBtn" type="button">Me rindo</button>`:''}
     <div class="msg ${R.won?'ok':''}" id="rmsg">${!R.playing?'Mirás el dibujo.':R.won?'¡La adivinaste! Esperá a los demás…':''}</div></div>`;
   setupCanvas();
   if($('#ansForm'))$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';guessDraw(v)};
+  if($('#giveBtn'))$('#giveBtn').onclick=()=>{if(!R||R.done)return;R.done=true;writeAnswer(R.me,{key:R.key,ok:false,gaveup:true});$('#ansForm')?.remove();$('#giveBtn')?.remove();setMsg('#rmsg','bad','Te rendiste. Esperá a los demás…')};
   if(R.drawer){$('#clrBtn').onclick=()=>{R.strokes=[];R.dirty=true;redraw()};$('#undoBtn').onclick=()=>{R.strokes.pop();R.dirty=true;redraw()};R.dirty=true}
   drawSlots();
 }
@@ -1138,13 +1164,14 @@ function buildTararea(){
   R.drawer=R.playing&&R.me===d;R.order=shuffle([...song[0]].map((c,i)=>c===' '?-1:i).filter(i=>i>=0),rng(R.key));
   const prev=R.playing&&!R.drawer?ansFor(R.me,R.key):null;if(prev?.ok){R.done=true;R.won=true}
   if(R.drawer)R.done=true;
-  $('#main').innerHTML=roundHead('tararea',R.drawer?'Tarareala en voz alta: con "na na na" o silbando. Prohibido decir la letra o el nombre.':`${esc(dn)} está tarareando. Escribí el nombre de la canción.`)+`
+  $('#main').innerHTML=roundHead('tararea',R.drawer?'Te toca tararear. Cantá la canción de abajo en voz alta con "na na na" o silbando, sin decir la letra ni el nombre. Si nadie la adivina, perdés una huella.':`<b>${esc(dn)}</b> está tarareando. Escribí el nombre de la canción y tocá Dale; podés probar todas las veces que quieras. Si no sale, tocá Me rindo.`)+`
     ${R.drawer?`<div class="secret"><span>Tu canción</span><b>${esc(song[0].toUpperCase())}</b><span>${esc(song[1])}</span></div>
       <p class="note center">Mirá tu celu: cuando alguien la saca, aparece arriba en su trampilla.</p>`
     :`<div class="hum" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div><div class="slots ${song[0].length>14?'dense':''}" id="slots"></div><p class="note center" id="artistHint"></p>`}
-    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué canción es?" aria-label="Nombre de la canción"><button class="btn">Dale</button></form>`:''}
+    ${R.playing&&!R.drawer&&!R.won?`<form class="ans" id="ansForm" autocomplete="off"><input id="ansIn" enterkeyhint="send" autocorrect="off" spellcheck="false" placeholder="¿Qué canción es?" aria-label="Nombre de la canción"><button class="btn">Dale</button></form><button class="btn ghost giveup" id="giveBtn" type="button">Me rindo</button>`:''}
     <div class="msg ${R.won?'ok':''}" id="rmsg">${!R.playing?'Escuchá y mirá quién la saca.':R.won?'¡La adivinaste! Esperá a los demás…':''}</div></div>`;
   if($('#ansForm'))$('#ansForm').onsubmit=e=>{e.preventDefault();const v=$('#ansIn').value;$('#ansIn').value='';guessDraw(v)};
+  if($('#giveBtn'))$('#giveBtn').onclick=()=>{if(!R||R.done)return;R.done=true;writeAnswer(R.me,{key:R.key,ok:false,gaveup:true});$('#ansForm')?.remove();$('#giveBtn')?.remove();setMsg('#rmsg','bad','Te rendiste. Esperá a los demás…')};
   R.artist=song[1];
   drawSlots();
 }
@@ -1155,7 +1182,7 @@ function buildPrenda(){
   R={pkey:state.prenda.key,start:performance.now(),T:TIMES.prenda};myVotes={};
   const me=myPlaySeat();const prev=me?ansFor(me,R.pkey):null;if(prev?.votes)myVotes={...prev.votes};
   $('#main').innerHTML=`<div class="card spicycard" id="rcard"><div class="gametag">Prenda o huella</div>
-    <p class="help">El que iba a perder una huella puede salvarse con una prenda (2 rescates por partida). Los demás votan si la cumplió. Nadie está obligado.</p>
+    ${taskBox(myPlaySeat()&&state.prenda.items[myPlaySeat()]!=null?'Ibas a perder una huella. Podés salvarte haciendo la prenda: elegí "La hago" y cumplila delante de todos, o "Prefiero perder la huella". Los demás votan si la cumpliste.':'Alguien está por perder una huella y puede salvarse con una prenda. Mirá si la cumple y votá con los botones.')}
     <div class="timer" id="timer"><i></i></div><div class="res" id="plist"></div></div>`;
   $('#plist').onclick=onPrendaClick;
   updatePrenda();
@@ -1195,7 +1222,8 @@ function buildReveal(){
   $('#main').innerHTML=`<div class="card"><div class="gametag">Ronda ${st.roundN} · ${TYPE_NAME[r.type]}</div>
     <div><p class="note center">${esc(r.title)}</p><div class="answer">${esc(r.big)}</div>${r.sub?`<p class="note center">${esc(r.sub)}</p>`:''}</div>
     ${notes[r.note]?`<div class="banner">${notes[r.note]}</div>`:''}
-    ${exc}<div class="res">${rows}</div><p class="quip">${esc(quip)}</p></div>`;
+    ${exc}<div class="res">${rows}</div><p class="quip">${esc(quip)}</p>${readyBtn()}</div>`;
+  wireReady();
   if(r.fell.length)sfx('fall');
   if(me&&r.fell.includes(me))showFall();
 }
@@ -1206,10 +1234,18 @@ function showFall(){
 }
 
 /* ===================== Intro ===================== */
+function readyKey(){return phaseKey(state)+':ok'}
+function readyBtn(){const me=myPlaySeat();if(!me||readOnly)return '';const done=ansFor(me,readyKey());
+  return `<button class="btn big" id="readyBtn" ${done?'disabled':''}>${done?'Esperando a los demás…':'¡Listo, sigamos!'}</button>`}
+function wireReady(){const b=$('#readyBtn');if(!b)return;b.onclick=()=>{writeAnswer(myPlaySeat(),{key:readyKey(),ready:true});b.disabled=true;b.textContent='Esperando a los demás…';sfx('tick')}}
 function buildIntro(){
   const names=SEATS.filter(s=>state.players[s]).map(s=>state.players[s].name);
-  $('#main').innerHTML=`<div class="card center"><div class="gametag">Arranca el programa</div><div class="count" id="cnt">3</div><p>${esc(names.join(' · '))}</p><p class="note">${state.mode==='picante'?'Modo picante +18. ':''}${state.lives} huellas cada uno. El último en pie va a la final.</p></div>`;
-  R={introStart:performance.now()};sfx('start');
+  $('#main').innerHTML=`<div class="card"><div class="gametag">Arranca el programa${state.mode==='picante'?' · Picante +18':''}</div>
+    <p class="center">${esc(names.join(' · '))}</p>
+    ${taskBox(GOAL_BODY,'Objetivo')}
+    <ul class="howto"><li>Cada ronda es un juego distinto. Arriba de todo vas a ver siempre <b>qué tenés que hacer</b>.</li><li>Cada uno tiene <b>${state.lives} huellas</b> (los pies de cada trampilla).</li><li>Acertar rápido suma plata al pozo.</li></ul>
+    ${readyBtn()}</div>`;
+  wireReady();sfx('start');
 }
 
 /* ===================== Final ===================== */
@@ -1291,11 +1327,29 @@ function onState(){
   if(vk!==viewKey){viewKey=vk;R=null;F=null;window.onresize=null;
     ({lobby:buildLobby,intro:buildIntro,round:buildRound,vote:buildVote,prenda:buildPrenda,reveal:buildReveal,final:buildFinal,end:buildEnd})[ph]();}
   else if(ph==='lobby')updateLobby();
+  updateWaiting();
   $('#roundChip').textContent=ph==='lobby'?'Lobby':ph==='intro'?'Arranca':ph==='final'?'Final':ph==='end'?'Fin':`Ronda ${state.roundN}`;
   renderStage();
 }
 function onSeats(){if(viewKey==='lobby'){updateLobby()}renderStage()}
-function onAnswers(){renderStage();updateFinal();if(state&&state.phase==='prenda')updatePrenda()}
+function pendingSeats(){
+  if(!state||!state.players)return [];const P=state.players,alive=aliveSeats(),hum=s=>!isBot(s);
+  switch(state.phase){
+    case 'round':{const k=roundKey(state);
+      if(ACTED.includes(state.type))return alive.filter(s=>s!==state.actor&&hum(s)&&!(ansFor(s,k)?.ok||ansFor(s,k)?.gaveup));
+      return alive.filter(s=>hum(s)&&!ansFor(s,k))}
+    case 'vote':return SEATS.filter(s=>P[s]&&hum(s)&&!ansFor(s,state.vote.key));
+    case 'intro':case 'reveal':{const k=readyKey();return alive.filter(s=>hum(s)&&!ansFor(s,k)?.ready)}
+    default:return [];
+  }
+}
+function updateWaiting(){
+  const el=$('#waitList');if(!el)return;const me=myPlaySeat();
+  const p=pendingSeats();const show=['round','vote','intro','reveal'].includes(state?.phase)&&p.length&&!(me&&p.includes(me)&&p.length===1&&state.phase!=='round');
+  el.hidden=!show;if(show)el.textContent='Falta que confirmen: '+p.map(s=>s===me?'vos':state.players[s].name).join(', ');
+  const b=$('#readyBtn');if(b&&me&&ansFor(me,readyKey())){b.disabled=true;b.textContent='Esperando a los demás…'}
+}
+function onAnswers(){renderStage();updateFinal();updateWaiting();if(state&&state.phase==='prenda')updatePrenda()}
 
 /* ===================== Bucle de animación ===================== */
 function tick(){
